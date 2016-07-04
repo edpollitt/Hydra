@@ -67,6 +67,21 @@ namespace Nerdle.Hydra.Tests.Unit.ClusterTests
         }
 
         [Test]
+        public void An_exception_is_thrown_if_components_are_available_but_no_component_successfully_handled_the_request()
+        {
+            foreach (var component in _components)
+            {
+                component.Value.Setup(c => c.IsAvailable).Returns(true);
+                component.Value.Setup(c => c.Execute(_theCommand)).Throws<InvalidOperationException>();
+            }
+
+            Action executing = () => _sut.Execute(_theCommand);
+
+            executing.ShouldThrow<ClusterFailureException>().WithMessage("There are available components in the cluster, but the request was not successfully processed by any component.")
+                .And.InnerException.Should().BeOfType<AggregateException>().Which.InnerExceptions.Count.Should().Be(3);
+        }
+
+        [Test]
         public void Availability_of_components_is_evaluated_lazily()
         {
             _components[Primary].Setup(component => component.IsAvailable).Returns(false);
