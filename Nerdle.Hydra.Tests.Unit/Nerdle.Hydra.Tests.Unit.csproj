@@ -60,7 +60,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ClusterTests\When_executing_a_command_through_a_cluster.cs" />
+    <Compile Include="ClusterTests\When_executing_a_command.cs" />
+    <Compile Include="ClusterTests\Against_a_cluster_of.cs" />
+    <Compile Include="ClusterTests\When_executing_a_query.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

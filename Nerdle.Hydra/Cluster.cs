@@ -16,15 +16,32 @@ namespace Nerdle.Hydra
 
         public ClusterResult Execute(Action<TComponent> command)
         {
-            // avoid eagerly enumerating past the first working component, as testing availability may be expensive (depending on availability heuristic in use)
+            return ExecuteInternal(component =>
+            {
+                component.Execute(command);
+                return new ClusterResult(component.Id);
+            });
+        }
+
+        public ClusterResult<TResult> Execute<TResult>(Func<TComponent, TResult> query)
+        {
+            return ExecuteInternal(component =>
+            {
+                var queryResult = component.Execute(query);
+                return new ClusterResult<TResult>(component.Id, queryResult);
+            });
+        }
+
+        TClusterResult ExecuteInternal<TClusterResult>(Func<IFailable<TComponent>, TClusterResult> operation) where TClusterResult : ClusterResult
+        {
             var exceptions = new List<Exception>();
 
+            // avoid eagerly enumerating components, as evaluating availability may be expensive (depending on availability heuristic in use)
             foreach (var component in _components.Where(c => c.IsAvailable))
             {
                 try
                 {
-                    component.Execute(command);
-                    return new ClusterResult(component.Id);
+                    return operation(component);
                 }
                 catch (Exception e)
                 {
@@ -32,23 +49,12 @@ namespace Nerdle.Hydra
                 }
             }
 
-            var exception = CreateClusterFailureException(exceptions);
-            throw exception;
-        }
-
-        static ClusterFailureException CreateClusterFailureException(IReadOnlyCollection<Exception> exceptions)
-        {
-            return exceptions.Count > 0
+            throw exceptions.Count > 0
                 ? new ClusterFailureException(
                     "There are available components in the cluster, but the request was not successfully processed by any component.",
                     exceptions.Count == 1 ? exceptions.First() : new AggregateException(exceptions))
                 : new ClusterFailureException(
                     "There are no currently available components in the cluster to process the request.");
-        }
-
-        public ClusterResult<TResult> Execute<TResult>(Func<TComponent, TResult> query)
-        {
-            throw new NotImplementedException();
         }
     }
 }
