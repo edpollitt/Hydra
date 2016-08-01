@@ -5,7 +5,7 @@ using NUnit.Framework;
 
 namespace Nerdle.Hydra.Tests.Unit.ClusterTests
 {
-    abstract class Against_a_cluster_of<T>
+    abstract class _against_a_cluster_of<T>
     {
         protected const string Primary = "primary";
         protected const string Secondary = "secondary";

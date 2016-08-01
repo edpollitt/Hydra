@@ -8,7 +8,7 @@ using Nerdle.Hydra.Exceptions;
 namespace Nerdle.Hydra.Tests.Unit.ClusterTests
 {
     [TestFixture]
-    class When_executing_a_command : Against_a_cluster_of<Stack>
+    class When_executing_a_command : _against_a_cluster_of<Stack>
     {
         readonly Action<Stack> _theCommand = stack => stack.Clear();
 

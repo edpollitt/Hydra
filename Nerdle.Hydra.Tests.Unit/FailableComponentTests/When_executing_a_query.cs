@@ -7,20 +7,8 @@ using NUnit.Framework;
 namespace Nerdle.Hydra.Tests.Unit.FailableComponentTests
 {
     [TestFixture]
-    class When_executing_a_query
+    class When_executing_a_query : _against_a_failable_component
     {
-        IFailable<IList> _sut;
-        IList _wrappedComponent;
-        Mock<IStateManager> _stateManager;
-
-        [SetUp]
-        public void BeforeEach()
-        {
-            _wrappedComponent = new ArrayList();
-            _stateManager = new Mock<IStateManager>();
-            _sut = new Failable<IList>(_wrappedComponent, "foo", _stateManager.Object);
-        }
-
         [Test]
         public void The_query_is_executed_against_the_wrapped_component()
         {
