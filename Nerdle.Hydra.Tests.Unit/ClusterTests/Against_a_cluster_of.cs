@@ -22,10 +22,10 @@ namespace Nerdle.Hydra.Tests.Unit.ClusterTests
                 .Select(id =>
                 {
                     var component = new Mock<IFailable<T>>();
-                    component.Setup(c => c.Id).Returns((string) id);
+                    component.Setup(c => c.ComponentId).Returns((string) id);
                     return component;
                 })
-                .ToDictionary(component => component.Object.Id, component => component);
+                .ToDictionary(component => component.Object.ComponentId, component => component);
 
             Sut = new Cluster<T>(Components.Values.Select(mock => mock.Object));
         }

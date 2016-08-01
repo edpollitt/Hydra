@@ -2,22 +2,26 @@ namespace Nerdle.Hydra
 {
     public class ClusterResult
     {
-        public string HandlerId { get; }
+        public string HandledByComponentId { get; }
 
-        public ClusterResult(string handlerId)
+        public ClusterResult(string handledByComponentId)
         {
-            HandlerId = handlerId;
+            HandledByComponentId = handledByComponentId;
         }
     }
-
 
     public class ClusterResult<TResult> : ClusterResult
     {
         public TResult Result { get; }
 
-        public ClusterResult(string handlerId, TResult result) : base(handlerId)
+        public ClusterResult(string handledByComponentId, TResult result) : base(handledByComponentId)
         {
             Result = result;
+        }
+
+        public static  implicit operator TResult(ClusterResult<TResult> result)
+        {
+            return result.Result;
         }
     }
 }

@@ -28,7 +28,7 @@ namespace Nerdle.Hydra.Tests.Unit.ClusterTests
             foreach (var component in Components)
                 component.Value.Verify(c => c.Execute(_theCommand), component.Key == expectedHandler ? Times.Once() : Times.Never());
 
-            result.HandlerId.Should().Be(expectedHandler);
+            result.HandledByComponentId.Should().Be(expectedHandler);
         }
 
         [Test]

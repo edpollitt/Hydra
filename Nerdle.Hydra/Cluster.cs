@@ -19,7 +19,7 @@ namespace Nerdle.Hydra
             return ExecuteInternal(component =>
             {
                 component.Execute(command);
-                return new ClusterResult(component.Id);
+                return new ClusterResult(component.ComponentId);
             });
         }
 
@@ -28,7 +28,7 @@ namespace Nerdle.Hydra
             return ExecuteInternal(component =>
             {
                 var queryResult = component.Execute(query);
-                return new ClusterResult<TResult>(component.Id, queryResult);
+                return new ClusterResult<TResult>(component.ComponentId, queryResult);
             });
         }
 
