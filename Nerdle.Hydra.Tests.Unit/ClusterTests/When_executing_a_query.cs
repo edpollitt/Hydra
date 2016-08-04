@@ -8,7 +8,7 @@ using NUnit.Framework;
 namespace Nerdle.Hydra.Tests.Unit.ClusterTests
 {
     [TestFixture]
-    class When_executing_a_query : Against_a_cluster_of<Queue>
+    class When_executing_a_query : _against_a_cluster_of<Queue>
     {
         readonly Func<Queue, object> _theQuery = service => service.Peek();
 

@@ -54,4 +54,6 @@ namespace Nerdle.Hydra
 
         public bool IsAvailable => _stateManager.CurrentState >= State.Recovering;
     }
+
+
 }

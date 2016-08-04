@@ -15,17 +15,17 @@ namespace Nerdle.Hydra.Tests.Unit.FailableComponentTests
             object commandTarget = null;
             Action<IList> theCommand = list => commandTarget = list;
 
-            _sut.Execute(theCommand);
+            Sut.Execute(theCommand);
 
-            commandTarget.Should().Be(_wrappedComponent);
+            commandTarget.Should().Be(WrappedComponent);
         }
 
         [Test]
         public void Successful_executions_are_registered_to_the_state_manager()
         {
-            _sut.Execute(list => { });
-            _stateManager.Verify(f => f.RegisterFailure(It.IsAny<Exception>()), Times.Never);
-            _stateManager.Verify(f => f.RegisterSuccess(), Times.Once);
+            Sut.Execute(list => { });
+            StateManager.Verify(f => f.RegisterFailure(It.IsAny<Exception>()), Times.Never);
+            StateManager.Verify(f => f.RegisterSuccess(), Times.Once);
         }
 
         [Test]
@@ -34,12 +34,12 @@ namespace Nerdle.Hydra.Tests.Unit.FailableComponentTests
             var theException = new IndexOutOfRangeException();
             try
             {
-                _sut.Execute(list => { throw theException; });
+                Sut.Execute(list => { throw theException; });
             }
             catch (IndexOutOfRangeException) { }
 
-            _stateManager.Verify(f => f.RegisterFailure(theException), Times.Once);
-            _stateManager.Verify(f => f.RegisterSuccess(), Times.Never);
+            StateManager.Verify(f => f.RegisterFailure(theException), Times.Once);
+            StateManager.Verify(f => f.RegisterSuccess(), Times.Never);
         }
     }
 }

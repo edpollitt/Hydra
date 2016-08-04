@@ -1,6 +1,4 @@
-using System.Collections;
 using FluentAssertions;
-using Moq;
 using NUnit.Framework;
 
 namespace Nerdle.Hydra.Tests.Unit.FailableComponentTests
@@ -16,21 +14,6 @@ namespace Nerdle.Hydra.Tests.Unit.FailableComponentTests
         {
             StateManager.Setup(sm => sm.CurrentState).Returns(currentState);
             Sut.IsAvailable.Should().Be(expectedDecision);
-        }
-    }
-
-    abstract class _against_a_failable_component
-    {
-        protected IFailable<IList> Sut;
-        protected IList WrappedComponent;
-        protected Mock<IStateManager> StateManager;
-
-        [SetUp]
-        public void BeforeEach()
-        {
-            WrappedComponent = new ArrayList();
-            StateManager = new Mock<IStateManager>();
-            Sut = new Failable<IList>(WrappedComponent, "foo123", StateManager.Object);
         }
     }
 }

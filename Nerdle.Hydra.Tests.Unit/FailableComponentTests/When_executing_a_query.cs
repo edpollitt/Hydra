@@ -15,9 +15,9 @@ namespace Nerdle.Hydra.Tests.Unit.FailableComponentTests
             object queryTarget = null;
             Func<IList, int> theQuery = list => { queryTarget = list; return list.Count; };
 
-            _sut.Execute(theQuery);
+            Sut.Execute(theQuery);
 
-            queryTarget.Should().Be(_wrappedComponent);
+            queryTarget.Should().Be(WrappedComponent);
         }
 
         [TestCase(99)]
@@ -25,16 +25,16 @@ namespace Nerdle.Hydra.Tests.Unit.FailableComponentTests
         [TestCase("foo")]
         public void The_result_of_the_command_is_returned_if_no_error_occurs(object componentResult)
         {
-            var result = _sut.Execute(component => componentResult);
+            var result = Sut.Execute(component => componentResult);
             result.Should().Be(componentResult);
         }
 
         [Test]
         public void Successful_executions_are_registered_to_the_state_manager()
         {
-            _sut.Execute(list => 1);
-            _stateManager.Verify(f => f.RegisterFailure(It.IsAny<Exception>()), Times.Never);
-            _stateManager.Verify(f => f.RegisterSuccess(), Times.Once);
+            Sut.Execute(list => 1);
+            StateManager.Verify(f => f.RegisterFailure(It.IsAny<Exception>()), Times.Never);
+            StateManager.Verify(f => f.RegisterSuccess(), Times.Once);
         }
 
         [Test]
@@ -44,12 +44,12 @@ namespace Nerdle.Hydra.Tests.Unit.FailableComponentTests
             try
             {
                 Func<IList, int> theQuery = list => { throw theException; };
-                _sut.Execute(theQuery);
+                Sut.Execute(theQuery);
             }
             catch (IndexOutOfRangeException) { }
 
-            _stateManager.Verify(f => f.RegisterFailure(theException), Times.Once);
-            _stateManager.Verify(f => f.RegisterSuccess(), Times.Never);
+            StateManager.Verify(f => f.RegisterFailure(theException), Times.Once);
+            StateManager.Verify(f => f.RegisterSuccess(), Times.Never);
         }
     }
 }

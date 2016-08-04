@@ -61,12 +61,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClusterTests\When_executing_a_command.cs" />
-    <Compile Include="ClusterTests\Against_a_cluster_of.cs" />
+    <Compile Include="ClusterTests\_against_a_cluster_of.cs" />
     <Compile Include="ClusterTests\When_executing_a_query.cs" />
     <Compile Include="FailableComponentTests\When_assessing_availability.cs" />
     <Compile Include="FailableComponentTests\When_executing_a_command.cs" />
     <Compile Include="FailableComponentTests\When_executing_a_query.cs" />
     <Compile Include="FailableComponentTests\When_instantiating_a_failable_component.cs" />
+    <Compile Include="FailableComponentTests\_against_a_failable_component.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
