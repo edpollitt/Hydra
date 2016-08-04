@@ -19,7 +19,7 @@ namespace Nerdle.Hydra
             Result = result;
         }
 
-        public static  implicit operator TResult(ClusterResult<TResult> result)
+        public static implicit operator TResult(ClusterResult<TResult> result)
         {
             return result.Result;
         }

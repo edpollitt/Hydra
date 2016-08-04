@@ -31,6 +31,19 @@ namespace Nerdle.Hydra.Tests.Unit.ClusterTests
             result.HandledByComponentId.Should().Be(expectedHandler);
         }
 
+        [TestCase(1)]
+        [TestCase(true)]
+        [TestCase("foo")]
+        public void The_query_result_is_returned(object queryResult)
+        {
+            Components[Primary].Setup(component => component.IsAvailable).Returns(true);
+            Components[Primary].Setup(component => component.Execute(_theQuery)).Returns(queryResult);
+
+            var actual = Sut.Execute(_theQuery);
+
+            actual.Result.Should().Be(queryResult);
+        }
+
         [Test]
         public void An_exception_is_thrown_if_no_working_component_is_available()
         {
