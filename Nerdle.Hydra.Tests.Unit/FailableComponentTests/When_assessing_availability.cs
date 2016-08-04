@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Moq;
 using NUnit.Framework;
 
 namespace Nerdle.Hydra.Tests.Unit.FailableComponentTests
@@ -14,6 +15,17 @@ namespace Nerdle.Hydra.Tests.Unit.FailableComponentTests
         {
             StateManager.Setup(sm => sm.CurrentState).Returns(currentState);
             Sut.IsAvailable.Should().Be(expectedDecision);
+        }
+
+        [TestCase(State.Unknown)]
+        [TestCase(State.Failed)]
+        [TestCase(State.Recovering)]
+        [TestCase(State.Working)]
+        public void The_state_should_only_be_queried_once_to_avoid_synchronization_problems(State currentState)
+        {
+            StateManager.Setup(sm => sm.CurrentState).Returns(currentState);
+            var _ = Sut.IsAvailable;
+            StateManager.Verify(sm => sm.CurrentState, Times.AtMostOnce);
         }
     }
 }
