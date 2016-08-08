@@ -33,7 +33,7 @@ namespace Nerdle.Hydra.Tests.Unit.FailableComponentTests
         public void Successful_executions_are_registered_to_the_state_manager()
         {
             Sut.Execute(list => 1);
-            StateManager.Verify(f => f.RegisterFailure(It.IsAny<Exception>()), Times.Never);
+            StateManager.Verify(f => f.RegisterError(It.IsAny<Exception>()), Times.Never);
             StateManager.Verify(f => f.RegisterSuccess(), Times.Once);
         }
 
@@ -48,7 +48,7 @@ namespace Nerdle.Hydra.Tests.Unit.FailableComponentTests
             }
             catch (IndexOutOfRangeException) { }
 
-            StateManager.Verify(f => f.RegisterFailure(theException), Times.Once);
+            StateManager.Verify(f => f.RegisterError(theException), Times.Once);
             StateManager.Verify(f => f.RegisterSuccess(), Times.Never);
         }
     }

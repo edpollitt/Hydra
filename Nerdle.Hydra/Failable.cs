@@ -1,4 +1,5 @@
 using System;
+using Nerdle.Hydra.StateManagement;
 
 namespace Nerdle.Hydra
 {
@@ -30,7 +31,7 @@ namespace Nerdle.Hydra
             }
             catch (Exception ex)
             {
-                _stateManager.RegisterFailure(ex);
+                _stateManager.RegisterError(ex);
                 throw;
             }
             _stateManager.RegisterSuccess();
@@ -45,7 +46,7 @@ namespace Nerdle.Hydra
             }
             catch (Exception ex)
             {
-                _stateManager.RegisterFailure(ex);
+                _stateManager.RegisterError(ex);
                 throw;
             }
             _stateManager.RegisterSuccess();
@@ -54,6 +55,4 @@ namespace Nerdle.Hydra
 
         public bool IsAvailable => _stateManager.CurrentState >= State.Recovering;
     }
-
-
 }

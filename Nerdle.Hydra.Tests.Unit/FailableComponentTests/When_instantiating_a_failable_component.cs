@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using FluentAssertions;
 using Moq;
+using Nerdle.Hydra.StateManagement;
 using NUnit.Framework;
 
 namespace Nerdle.Hydra.Tests.Unit.FailableComponentTests
