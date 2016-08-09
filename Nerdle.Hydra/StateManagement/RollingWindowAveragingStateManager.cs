@@ -1,32 +1,51 @@
 using System;
-using System.Collections.Concurrent;
 using System.Threading;
 
 namespace Nerdle.Hydra.StateManagement
 {
     public class RollingWindowAveragingStateManager : IStateManager
     {
-        readonly RollingWindowAveragingStateManagerConfig _configuration;
+        readonly IRollingWindow _failureWindow;
+        readonly IRollingWindow _successWindow;
         readonly IClock _clock;
-        readonly ConcurrentQueue<DateTime> _failures = new ConcurrentQueue<DateTime>();
-        readonly ConcurrentQueue<DateTime> _successes = new ConcurrentQueue<DateTime>();
 
-        readonly ReaderWriterLockSlim _rwLock = new ReaderWriterLockSlim();
+        readonly ISyncManager _sync;
+
+        readonly ReaderWriterLockSlim _stateLock;
+        readonly ReaderWriterLockSlim _successWindowLock;
+        readonly ReaderWriterLockSlim _failureWindowLock;
 
         State _state;
         DateTime? _failedUntil;
+        readonly TimeSpan _failFor;
 
         public event StateChangedHandler StateChanged;
 
-        public RollingWindowAveragingStateManager(RollingWindowAveragingStateManagerConfig configuration) : this(configuration, new SystemClock())
+        public RollingWindowAveragingStateManager(TimeSpan windowLength, double failureTriggerPercentage, int minimumSampleSize, TimeSpan failFor, TimeSpan? synchLockTimeout = null) 
+            : this(new RollingWindow(windowLength), new RollingWindow(windowLength), failFor, new SyncManager(synchLockTimeout))
         {
         }
 
-        internal RollingWindowAveragingStateManager(RollingWindowAveragingStateManagerConfig configuration, IClock clock, State initialState = State.Working)
+        internal RollingWindowAveragingStateManager(
+            IRollingWindow failureWindow, 
+            IRollingWindow successWindow,
+            TimeSpan failFor,
+            ISyncManager syncManager,
+            IClock clock = null,
+            State initialState = State.Working,
+            ReaderWriterLockSlim stateLock = null,
+            ReaderWriterLockSlim successWindowLock = null,
+            ReaderWriterLockSlim failureWindowLock = null)
         {
-            _configuration = configuration;
-            _clock = clock;
+            _failureWindow = failureWindow;
+            _successWindow = successWindow;
+            _failFor = failFor;
+            _sync = syncManager;
+            _clock = clock ?? new SystemClock();
             _state = initialState;
+            _stateLock = stateLock ?? new ReaderWriterLockSlim();
+            _successWindowLock = successWindowLock ?? new ReaderWriterLockSlim();
+            _failureWindowLock = failureWindowLock ?? new ReaderWriterLockSlim();
 
             if (_state == State.Failed)
                 _failedUntil = _clock.UtcNow.AddMinutes(1);
@@ -34,6 +53,7 @@ namespace Nerdle.Hydra.StateManagement
 
         public void RegisterSuccess()
         {
+            _sync.Write(_successWindowLock, () => _successWindow.Mark());
         }
 
         public void RegisterError(Exception exception)
@@ -44,73 +64,43 @@ namespace Nerdle.Hydra.StateManagement
         {
             get
             {
-                State? result = null;
+                // Using a double lock/evaluation pattern as we want to avoid taking an upgradeable lock if possible
 
-                // Using a double lock/evaluation pattern as we want to avoid taking an upgradable lock if possible
-
-                WithReadOnlyLock(() =>
+                var result = _sync.ReadOnly(_stateLock, () =>
                 {
                     var stateRequiresModification = _state == State.Failed && (_failedUntil == null || _failedUntil <= _clock.UtcNow);
-                    if (!stateRequiresModification) result = _state;
+                    return stateRequiresModification ? (State?)null : _state;
                 });
 
-                if (result == null)
+                if (result.HasValue)
+                    return result.Value;
+
+                return _sync.UpgradeableRead(_stateLock, () =>
                 {
-                    WithUpgradeableReadLock(() =>
+                    var stateRequiresModification = _state == State.Failed && (_failedUntil == null || _failedUntil <= _clock.UtcNow);
+                    if (stateRequiresModification)
                     {
-                        var stateRequiresModification = _state == State.Failed && (_failedUntil == null || _failedUntil <= _clock.UtcNow);
-                        if (stateRequiresModification)
+                        _sync.Write(_stateLock, () =>
                         {
-                            WithWriteLock(() =>
-                            {
-                                var previousState = _state;
-                                _state = State.Recovering;
-                                OnStateChanged(previousState, _state);
-                                _failedUntil = null;
-                            });
-                        }
+                            UpdateState(State.Recovering);
+                            _failedUntil = null;
+                        });
+                    }
 
-                        result = _state;
-                    });
-                }
-
-                return result ?? State.Unknown;
+                    return _state;
+                });
             }
         }
 
-        void WithReadOnlyLock(Action synchronisedCommand)
+        void UpdateState(State newState)
         {
-            WithLock(synchronisedCommand, rwlock => rwlock.TryEnterReadLock(_configuration.SyncLockTimeout), rwlock => rwlock.ExitReadLock());
-        }
+            if (_state == newState)
+                return;
 
-        void WithUpgradeableReadLock(Action synchronisedCommand)
-        {
-            WithLock(synchronisedCommand, rwlock => rwlock.TryEnterUpgradeableReadLock(_configuration.SyncLockTimeout), rwlock => rwlock.ExitUpgradeableReadLock());
-        }
+            var oldState = _state;
+            _state = newState;
 
-        void WithWriteLock(Action synchronisedCommand)
-        {
-            WithLock(synchronisedCommand, rwlock => rwlock.TryEnterWriteLock(_configuration.SyncLockTimeout), rwlock => rwlock.ExitWriteLock());
-        }
-
-        void WithLock(Action synchronisedCommand, Func<ReaderWriterLockSlim, bool> enterLock, Action<ReaderWriterLockSlim> exitLock)
-        {
-            if (enterLock(_rwLock))
-            {
-                try
-                {
-                    synchronisedCommand();
-                }
-                finally
-                {
-                    exitLock(_rwLock);
-                }
-            }
-        }
-
-        void OnStateChanged(State previousState, State currentState)
-        {
-            StateChanged?.Invoke(this, new StateChangedArgs(previousState, currentState));
+            StateChanged?.Invoke(this, new StateChangedArgs(oldState, newState));
         }
     }
 }
