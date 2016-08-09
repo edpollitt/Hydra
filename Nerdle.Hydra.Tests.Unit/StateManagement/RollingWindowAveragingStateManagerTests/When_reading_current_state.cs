@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
 using Nerdle.Hydra.StateManagement;
+using Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateManagerTests.Helpers;
 using NUnit.Framework;
 
 namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateManagerTests
@@ -56,8 +57,8 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         [TestCase(State.Working)]
         public void The_unknown_state_is_returned_if_a_sync_lock_cannot_be_obtained_within_the_configured_period(State state)
         {
-            Task.Run(() => _stateLock.EnterWriteLock()).Wait();
             var sut = new RollingWindowAveragingStateManager(Mock.Of<IRollingWindow>(), Mock.Of<IRollingWindow>(), _failFor, _syncManagerProxy, _clock.Object, state, _stateLock);
+            Task.Run(() => _stateLock.EnterWriteLock()).Wait();
 
             sut.CurrentState.Should().Be(State.Unknown);
         }

@@ -65,7 +65,6 @@ namespace Nerdle.Hydra.StateManagement
             get
             {
                 // Using a double lock/evaluation pattern as we want to avoid taking an upgradeable lock if possible
-
                 var result = _sync.ReadOnly(_stateLock, () =>
                 {
                     var stateRequiresModification = _state == State.Failed && (_failedUntil == null || _failedUntil <= _clock.UtcNow);
