@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
+using Nerdle.Hydra.Infrastructure;
 using Nerdle.Hydra.StateManagement;
 using Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateManagerTests.Helpers;
 using NUnit.Framework;

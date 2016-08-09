@@ -1,6 +1,6 @@
 using System;
 
-namespace Nerdle.Hydra
+namespace Nerdle.Hydra.Infrastructure
 {
     interface IClock
     {

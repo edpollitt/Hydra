@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 
-namespace Nerdle.Hydra.StateManagement
+namespace Nerdle.Hydra.Infrastructure
 {
     class SyncManager : ISyncManager
     {
