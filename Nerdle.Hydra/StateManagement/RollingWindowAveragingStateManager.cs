@@ -49,12 +49,32 @@ namespace Nerdle.Hydra.StateManagement
             _failureWindowLock = failureWindowLock ?? new ReaderWriterLockSlim();
 
             if (_state == State.Failed)
-                _failedUntil = _clock.UtcNow.AddMinutes(1);
+                _failedUntil = _clock.UtcNow.Add(failFor);
         }
 
         public void RegisterSuccess()
         {
-            _sync.Write(_successWindowLock, () => _successWindow.Mark());
+            var state = _sync.ReadOnly(_stateLock, () => _state);
+
+            if (state == State.Working)
+            {
+                _sync.Write(_successWindowLock, () => _successWindow.Mark());
+                return;
+            }
+
+            if (state == State.Recovering)
+            {
+                _sync.UpgradeableRead(_stateLock, () =>
+                {
+                    if (state == State.Recovering)
+                    {
+                        _sync.Write(_stateLock, () =>
+                        {
+                            UpdateState(State.Working);
+                        });
+                    }
+                });
+            }
         }
 
         public void RegisterError(Exception exception)

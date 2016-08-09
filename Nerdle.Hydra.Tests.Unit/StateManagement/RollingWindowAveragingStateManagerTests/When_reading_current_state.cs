@@ -35,9 +35,7 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         public void A_read_lock_is_obtained(State state)
         {
             var sut = new RollingWindowAveragingStateManager(Mock.Of<IRollingWindow>(), Mock.Of<IRollingWindow>(), _failFor, _syncManagerProxy, _clock.Object, state, _stateLock);
-
             var _ = sut.CurrentState;
-
             _syncManagerProxy.ReadOnlyLocks[_stateLock].Should().Be(1);
         }
 
@@ -48,7 +46,6 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         public void The_state_is_returned(State state)
         {
             var sut = new RollingWindowAveragingStateManager(Mock.Of<IRollingWindow>(), Mock.Of<IRollingWindow>(), _failFor, _syncManagerProxy, _clock.Object, state, _stateLock);
-
             sut.CurrentState.Should().Be(state);
         }
 
@@ -60,7 +57,6 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         {
             var sut = new RollingWindowAveragingStateManager(Mock.Of<IRollingWindow>(), Mock.Of<IRollingWindow>(), _failFor, _syncManagerProxy, _clock.Object, state, _stateLock);
             Task.Run(() => _stateLock.EnterWriteLock()).Wait();
-
             sut.CurrentState.Should().Be(State.Unknown);
         }
 
@@ -69,7 +65,6 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         {
             var sut = new RollingWindowAveragingStateManager(Mock.Of<IRollingWindow>(), Mock.Of<IRollingWindow>(), _failFor, _syncManagerProxy, _clock.Object, State.Failed, _stateLock);
             _clock.Setup(c => c.UtcNow).Returns(DateTime.UtcNow.Add(_failFor));
-
             sut.CurrentState.Should().Be(State.Recovering);
         }
 
@@ -84,7 +79,6 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
             _syncManagerProxy.UpgradeableLocks[_stateLock].Should().Be(1);
             _syncManagerProxy.WriteLocks[_stateLock].Should().Be(1);
         }
-
 
         [Test]
         public void The_state_changed_event_fires_if_a_read_causes_state_to_be_update()
