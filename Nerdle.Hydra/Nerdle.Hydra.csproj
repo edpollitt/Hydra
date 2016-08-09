@@ -56,7 +56,6 @@
     <Compile Include="StateManagement\RollingWindow.cs" />
     <Compile Include="StateManagement\RollingWindowAveragingStateManager.cs" />
     <Compile Include="State.cs" />
-    <Compile Include="StateManagement\RollingWindowAveragingStateManagerConfig.cs" />
     <Compile Include="StateManagement\StateChangedArgs.cs" />
     <Compile Include="StateManagement\SyncManager.cs" />
     <Compile Include="SystemClock.cs" />
