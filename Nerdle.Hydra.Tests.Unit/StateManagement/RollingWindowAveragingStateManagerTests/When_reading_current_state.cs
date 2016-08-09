@@ -69,7 +69,7 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         }
 
         [Test]
-        public void A_write_lock_is_obtained_if_a_read_causes_state_to_be_update()
+        public void A_write_lock_is_obtained_if_a_read_causes_state_to_be_updated()
         {
             var sut = new RollingWindowAveragingStateManager(Mock.Of<IRollingWindow>(), Mock.Of<IRollingWindow>(), _failFor, _syncManagerProxy, _clock.Object, State.Failed, _stateLock);
             _clock.Setup(c => c.UtcNow).Returns(DateTime.UtcNow.Add(_failFor));

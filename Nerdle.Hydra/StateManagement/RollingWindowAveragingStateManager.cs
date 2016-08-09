@@ -6,8 +6,8 @@ namespace Nerdle.Hydra.StateManagement
 {
     public class RollingWindowAveragingStateManager : IStateManager
     {
-        readonly IRollingWindow _failureWindow;
         readonly IRollingWindow _successWindow;
+        readonly IRollingWindow _failureWindow;
         readonly IClock _clock;
 
         readonly ISyncManager _sync;
@@ -28,8 +28,8 @@ namespace Nerdle.Hydra.StateManagement
         }
 
         internal RollingWindowAveragingStateManager(
-            IRollingWindow failureWindow, 
             IRollingWindow successWindow,
+            IRollingWindow failureWindow,
             TimeSpan failFor,
             ISyncManager syncManager,
             IClock clock = null,
@@ -38,8 +38,8 @@ namespace Nerdle.Hydra.StateManagement
             ReaderWriterLockSlim successWindowLock = null,
             ReaderWriterLockSlim failureWindowLock = null)
         {
-            _failureWindow = failureWindow;
             _successWindow = successWindow;
+            _failureWindow = failureWindow;
             _failFor = failFor;
             _sync = syncManager;
             _clock = clock ?? new SystemClock();
@@ -77,8 +77,30 @@ namespace Nerdle.Hydra.StateManagement
             }
         }
 
-        public void RegisterError(Exception exception)
+        public void RegisterFailure()
         {
+            var state = _sync.ReadOnly(_stateLock, () => _state);
+
+            if (state == State.Working)
+            {
+                _sync.Write(_failureWindowLock, () => _failureWindow.Mark());
+                return;
+            }
+
+            if (state == State.Recovering)
+            {
+                _sync.UpgradeableRead(_stateLock, () =>
+                {
+                    if (state == State.Recovering)
+                    {
+                        _sync.Write(_stateLock, () =>
+                        {
+                            UpdateState(State.Failed);
+                            _failedUntil = _clock.UtcNow + _failFor;
+                        });
+                    }
+                });
+            }
         }
 
         public State CurrentState

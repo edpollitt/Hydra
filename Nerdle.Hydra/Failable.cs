@@ -31,7 +31,7 @@ namespace Nerdle.Hydra
             }
             catch (Exception ex)
             {
-                _stateManager.RegisterError(ex);
+                _stateManager.RegisterFailure();
                 throw;
             }
             _stateManager.RegisterSuccess();
@@ -46,7 +46,7 @@ namespace Nerdle.Hydra
             }
             catch (Exception ex)
             {
-                _stateManager.RegisterError(ex);
+                _stateManager.RegisterFailure();
                 throw;
             }
             _stateManager.RegisterSuccess();
