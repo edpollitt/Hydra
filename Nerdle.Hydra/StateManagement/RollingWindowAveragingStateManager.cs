@@ -6,101 +6,71 @@ namespace Nerdle.Hydra.StateManagement
 {
     public class RollingWindowAveragingStateManager : IStateManager
     {
-        readonly IRollingWindow _successWindow;
+        readonly double _failureTriggerPercentage;
+        readonly int _minimumSampleSize;
         readonly IRollingWindow _failureWindow;
-        readonly IClock _clock;
-
+        readonly IRollingWindow _successWindow;
         readonly ISyncManager _sync;
-
-        readonly ReaderWriterLockSlim _stateLock;
-        readonly ReaderWriterLockSlim _successWindowLock;
-        readonly ReaderWriterLockSlim _failureWindowLock;
+        readonly TimeSpan _failFor;
+        readonly IClock _clock;
 
         State _state;
         DateTime? _failedUntil;
-        readonly TimeSpan _failFor;
 
         public event StateChangedHandler StateChanged;
 
         public RollingWindowAveragingStateManager(TimeSpan windowLength, double failureTriggerPercentage, int minimumSampleSize, TimeSpan failFor, TimeSpan? synchLockTimeout = null) 
-            : this(new RollingWindow(windowLength), new RollingWindow(windowLength), failFor, new SyncManager(synchLockTimeout))
+            : this(new RollingWindow(windowLength), new RollingWindow(windowLength), new SyncManager(new ReaderWriterLockSlim(), synchLockTimeout), failFor, new SystemClock())
         {
+            _failureTriggerPercentage = failureTriggerPercentage;
+            _minimumSampleSize = minimumSampleSize;
         }
 
         internal RollingWindowAveragingStateManager(
             IRollingWindow successWindow,
             IRollingWindow failureWindow,
-            TimeSpan failFor,
             ISyncManager syncManager,
-            IClock clock = null,
-            State initialState = State.Working,
-            ReaderWriterLockSlim stateLock = null,
-            ReaderWriterLockSlim successWindowLock = null,
-            ReaderWriterLockSlim failureWindowLock = null)
+            TimeSpan failFor,
+            IClock clock,
+            State initialState = State.Working)
         {
             _successWindow = successWindow;
             _failureWindow = failureWindow;
             _failFor = failFor;
             _sync = syncManager;
-            _clock = clock ?? new SystemClock();
+            _clock = clock;
             _state = initialState;
-            _stateLock = stateLock ?? new ReaderWriterLockSlim();
-            _successWindowLock = successWindowLock ?? new ReaderWriterLockSlim();
-            _failureWindowLock = failureWindowLock ?? new ReaderWriterLockSlim();
-
+    
             if (_state == State.Failed)
-                _failedUntil = _clock.UtcNow.Add(failFor);
+                _failedUntil = _clock.UtcNow + failFor;
         }
 
         public void RegisterSuccess()
         {
-            var state = _sync.ReadOnly(_stateLock, () => _state);
-
-            if (state == State.Working)
+            _sync.UpgradeableRead(() =>
             {
-                _sync.Write(_successWindowLock, () => _successWindow.Mark());
-                return;
-            }
+                if (_state == State.Recovering)
+                    UpdateState(State.Working);
 
-            if (state == State.Recovering)
-            {
-                _sync.UpgradeableRead(_stateLock, () =>
-                {
-                    if (state == State.Recovering)
-                    {
-                        _sync.Write(_stateLock, () =>
-                        {
-                            UpdateState(State.Working);
-                        });
-                    }
-                });
-            }
+                if (_state == State.Working)
+                    _sync.Write(() => _successWindow.Mark());
+            });
         }
 
         public void RegisterFailure()
         {
-            var state = _sync.ReadOnly(_stateLock, () => _state);
-
-            if (state == State.Working)
+            _sync.UpgradeableRead(() =>
             {
-                _sync.Write(_failureWindowLock, () => _failureWindow.Mark());
-                return;
-            }
-
-            if (state == State.Recovering)
-            {
-                _sync.UpgradeableRead(_stateLock, () =>
+                if (_state == State.Recovering)
                 {
-                    if (state == State.Recovering)
-                    {
-                        _sync.Write(_stateLock, () =>
-                        {
-                            UpdateState(State.Failed);
-                            _failedUntil = _clock.UtcNow + _failFor;
-                        });
-                    }
-                });
-            }
+                    UpdateState(State.Failed);
+                }
+
+                if (_state == State.Working)
+                {
+                    _sync.Write(() => _failureWindow.Mark());
+                }
+            });
         }
 
         public State CurrentState
@@ -108,7 +78,7 @@ namespace Nerdle.Hydra.StateManagement
             get
             {
                 // Using a double lock/evaluation pattern as we want to avoid taking an upgradeable lock if possible
-                var result = _sync.ReadOnly(_stateLock, () =>
+                var result = _sync.ReadOnly(() =>
                 {
                     var stateRequiresModification = _state == State.Failed && (_failedUntil == null || _failedUntil <= _clock.UtcNow);
                     return stateRequiresModification ? (State?)null : _state;
@@ -117,16 +87,12 @@ namespace Nerdle.Hydra.StateManagement
                 if (result.HasValue)
                     return result.Value;
 
-                return _sync.UpgradeableRead(_stateLock, () =>
+                return _sync.UpgradeableRead(() =>
                 {
                     var stateRequiresModification = _state == State.Failed && (_failedUntil == null || _failedUntil <= _clock.UtcNow);
                     if (stateRequiresModification)
                     {
-                        _sync.Write(_stateLock, () =>
-                        {
-                            UpdateState(State.Recovering);
-                            _failedUntil = null;
-                        });
+                        UpdateState(State.Recovering);
                     }
 
                     return _state;
@@ -136,13 +102,18 @@ namespace Nerdle.Hydra.StateManagement
 
         void UpdateState(State newState)
         {
-            if (_state == newState)
-                return;
+            _sync.Write(() =>
+            {
+                if (_state == newState)
+                    return;
 
-            var oldState = _state;
-            _state = newState;
+                var oldState = _state;
+                _state = newState;
 
-            StateChanged?.Invoke(this, new StateChangedArgs(oldState, newState));
+                _failedUntil = newState == State.Failed ? (_clock.UtcNow + _failFor) : (DateTime?)null;
+
+                StateChanged?.Invoke(this, new StateChangedArgs(oldState, newState));
+            });
         }
     }
 }

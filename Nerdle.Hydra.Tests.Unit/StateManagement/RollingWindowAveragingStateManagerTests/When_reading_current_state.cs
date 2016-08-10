@@ -13,7 +13,7 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
     [TestFixture]
     class When_reading_the_current_state
     {
-        ReaderWriterLockSlim _stateLock;
+        ReaderWriterLockSlim _rwLock;
         CountingSyncManagerProxy _syncManagerProxy;
         Mock<IClock> _clock;
 
@@ -22,8 +22,8 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         [SetUp]
         public void BeforeEach()
         {
-            _stateLock = new ReaderWriterLockSlim();
-            _syncManagerProxy = new CountingSyncManagerProxy(new SyncManager(TimeSpan.Zero));
+            _rwLock = new ReaderWriterLockSlim();
+            _syncManagerProxy = new CountingSyncManagerProxy(new SyncManager(_rwLock, TimeSpan.Zero));
             _clock = new Mock<IClock>();
             _clock.Setup(c => c.UtcNow).Returns(DateTime.UtcNow);
         }
@@ -34,9 +34,9 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         [TestCase(State.Working)]
         public void A_read_lock_is_obtained(State state)
         {
-            var sut = new RollingWindowAveragingStateManager(Mock.Of<IRollingWindow>(), Mock.Of<IRollingWindow>(), _failFor, _syncManagerProxy, _clock.Object, state, _stateLock);
+            var sut = new RollingWindowAveragingStateManager(Mock.Of<IRollingWindow>(), Mock.Of<IRollingWindow>(), _syncManagerProxy, _failFor, _clock.Object, state);
             var _ = sut.CurrentState;
-            _syncManagerProxy.ReadOnlyLocks[_stateLock].Should().Be(1);
+            _syncManagerProxy.ReadOnlyLocksTaken.Should().Be(1);
         }
 
         [TestCase(State.Unknown)]
@@ -45,7 +45,7 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         [TestCase(State.Working)]
         public void The_state_is_returned(State state)
         {
-            var sut = new RollingWindowAveragingStateManager(Mock.Of<IRollingWindow>(), Mock.Of<IRollingWindow>(), _failFor, _syncManagerProxy, _clock.Object, state, _stateLock);
+            var sut = new RollingWindowAveragingStateManager(Mock.Of<IRollingWindow>(), Mock.Of<IRollingWindow>(), _syncManagerProxy, _failFor, _clock.Object, state);
             sut.CurrentState.Should().Be(state);
         }
 
@@ -55,15 +55,15 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         [TestCase(State.Working)]
         public void The_unknown_state_is_returned_if_a_sync_lock_cannot_be_obtained_within_the_configured_period(State state)
         {
-            var sut = new RollingWindowAveragingStateManager(Mock.Of<IRollingWindow>(), Mock.Of<IRollingWindow>(), _failFor, _syncManagerProxy, _clock.Object, state, _stateLock);
-            Task.Run(() => _stateLock.EnterWriteLock()).Wait();
+            var sut = new RollingWindowAveragingStateManager(Mock.Of<IRollingWindow>(), Mock.Of<IRollingWindow>(), _syncManagerProxy, _failFor, _clock.Object, state);
+            Task.Run(() => _rwLock.EnterWriteLock()).Wait();
             sut.CurrentState.Should().Be(State.Unknown);
         }
 
         [Test]
         public void A_failed_state_recovers_after_the_configured_period()
         {
-            var sut = new RollingWindowAveragingStateManager(Mock.Of<IRollingWindow>(), Mock.Of<IRollingWindow>(), _failFor, _syncManagerProxy, _clock.Object, State.Failed, _stateLock);
+            var sut = new RollingWindowAveragingStateManager(Mock.Of<IRollingWindow>(), Mock.Of<IRollingWindow>(), _syncManagerProxy, _failFor, _clock.Object, State.Failed);
             _clock.Setup(c => c.UtcNow).Returns(DateTime.UtcNow.Add(_failFor));
             sut.CurrentState.Should().Be(State.Recovering);
         }
@@ -71,19 +71,19 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         [Test]
         public void A_write_lock_is_obtained_if_a_read_causes_state_to_be_updated()
         {
-            var sut = new RollingWindowAveragingStateManager(Mock.Of<IRollingWindow>(), Mock.Of<IRollingWindow>(), _failFor, _syncManagerProxy, _clock.Object, State.Failed, _stateLock);
+            var sut = new RollingWindowAveragingStateManager(Mock.Of<IRollingWindow>(), Mock.Of<IRollingWindow>(), _syncManagerProxy, _failFor, _clock.Object, State.Failed);
             _clock.Setup(c => c.UtcNow).Returns(DateTime.UtcNow.Add(_failFor));
 
             var _ = sut.CurrentState;
 
-            _syncManagerProxy.UpgradeableLocks[_stateLock].Should().Be(1);
-            _syncManagerProxy.WriteLocks[_stateLock].Should().Be(1);
+            _syncManagerProxy.UpgradeableLocksTaken.Should().Be(1);
+            _syncManagerProxy.WriteLocksTaken.Should().Be(1);
         }
 
         [Test]
-        public void The_state_changed_event_fires_if_a_read_causes_state_to_be_update()
+        public void The_state_changed_event_fires_if_a_read_causes_state_to_be_updated()
         {
-            var sut = new RollingWindowAveragingStateManager(Mock.Of<IRollingWindow>(), Mock.Of<IRollingWindow>(), _failFor, _syncManagerProxy, _clock.Object, State.Failed, _stateLock);
+            var sut = new RollingWindowAveragingStateManager(Mock.Of<IRollingWindow>(), Mock.Of<IRollingWindow>(), _syncManagerProxy, _failFor, _clock.Object, State.Failed);
             _clock.Setup(c => c.UtcNow).Returns(DateTime.UtcNow.Add(_failFor));
             StateChangedArgs changeArgs = null;
             sut.StateChanged += (sender, args) => changeArgs = args;

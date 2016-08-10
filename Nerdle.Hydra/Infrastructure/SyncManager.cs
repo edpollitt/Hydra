@@ -5,31 +5,33 @@ namespace Nerdle.Hydra.Infrastructure
 {
     class SyncManager : ISyncManager
     {
+        readonly ReaderWriterLockSlim _rwLock;
         readonly TimeSpan _syncLockTimeout;
 
-        public SyncManager(TimeSpan? syncLockTimeout = null)
+        public SyncManager(ReaderWriterLockSlim rwLock, TimeSpan? syncLockTimeout = null)
         {
+            _rwLock = rwLock;
             _syncLockTimeout = syncLockTimeout ?? TimeSpan.FromSeconds(10);
         }
 
-        public void ReadOnly(ReaderWriterLockSlim rwLock, Action synchronisedCommand)
+        public void ReadOnly(Action synchronisedCommand)
         {
-            WithLock(synchronisedCommand, () => rwLock.TryEnterReadLock(_syncLockTimeout), rwLock.ExitReadLock);
+            WithLock(synchronisedCommand, rw => rw.TryEnterReadLock(_syncLockTimeout), rw => rw.ExitReadLock());
         }
 
-        public void UpgradeableRead(ReaderWriterLockSlim rwLock, Action synchronisedCommand)
+        public void UpgradeableRead(Action synchronisedCommand)
         {
-            WithLock(synchronisedCommand, () => rwLock.TryEnterUpgradeableReadLock(_syncLockTimeout), rwLock.ExitUpgradeableReadLock);
+            WithLock(synchronisedCommand, rw => rw.TryEnterUpgradeableReadLock(_syncLockTimeout), rw => rw.ExitUpgradeableReadLock());
         }
 
-        public void Write(ReaderWriterLockSlim rwLock, Action synchronisedCommand)
+        public void Write(Action synchronisedCommand)
         {
-            WithLock(synchronisedCommand, () => rwLock.TryEnterWriteLock(_syncLockTimeout), rwLock.ExitWriteLock);
+            WithLock(synchronisedCommand, rw => rw.TryEnterWriteLock(_syncLockTimeout), rw => rw.ExitWriteLock());
         }
 
-        static void WithLock(Action synchronisedCommand, Func<bool> tryEnterLock, Action exitLock)
+        void WithLock(Action synchronisedCommand, Func<ReaderWriterLockSlim, bool> tryEnterLock, Action<ReaderWriterLockSlim> exitLock)
         {
-            if (tryEnterLock())
+            if (tryEnterLock(_rwLock))
             {
                 try
                 {
@@ -37,29 +39,29 @@ namespace Nerdle.Hydra.Infrastructure
                 }
                 finally
                 {
-                    exitLock();
+                    exitLock(_rwLock);
                 }
             }
         }
 
-        public T ReadOnly<T>(ReaderWriterLockSlim rwLock, Func<T> synchronisedQuery)
+        public T ReadOnly<T>(Func<T> synchronisedQuery)
         {
-            return WithLock(synchronisedQuery, () => rwLock.TryEnterReadLock(_syncLockTimeout), rwLock.ExitReadLock);
+            return WithLock(synchronisedQuery, rw => rw.TryEnterReadLock(_syncLockTimeout), rw => rw.ExitReadLock());
         }
 
-        public T UpgradeableRead<T>(ReaderWriterLockSlim rwLock, Func<T> synchronisedQuery)
+        public T UpgradeableRead<T>(Func<T> synchronisedQuery)
         {
-            return WithLock(synchronisedQuery, () => rwLock.TryEnterUpgradeableReadLock(_syncLockTimeout), rwLock.ExitUpgradeableReadLock);
+            return WithLock(synchronisedQuery, rw => rw.TryEnterUpgradeableReadLock(_syncLockTimeout), rw => rw.ExitUpgradeableReadLock());
         }
 
-        public T Write<T>(ReaderWriterLockSlim rwLock, Func<T> synchronisedQuery)
+        public T Write<T>(Func<T> synchronisedQuery)
         {
-            return WithLock(synchronisedQuery, () => rwLock.TryEnterWriteLock(_syncLockTimeout), rwLock.ExitWriteLock);
+            return WithLock(synchronisedQuery, rw => rw.TryEnterWriteLock(_syncLockTimeout), rw => rw.ExitWriteLock());
         }
 
-        static T WithLock<T>(Func<T> synchronisedQuery, Func<bool> tryEnterLock, Action exitLock)
+        T WithLock<T>(Func<T> synchronisedQuery, Func<ReaderWriterLockSlim, bool> tryEnterLock, Action<ReaderWriterLockSlim> exitLock)
         {
-            if (tryEnterLock())
+            if (tryEnterLock(_rwLock))
             {
                 try
                 {
@@ -67,7 +69,7 @@ namespace Nerdle.Hydra.Infrastructure
                 }
                 finally
                 {
-                    exitLock();
+                    exitLock(_rwLock);
                 }
             }
             return default(T);
