@@ -1,7 +1,6 @@
 using System;
-using System.Threading;
 
-namespace Nerdle.Hydra.Infrastructure
+namespace Nerdle.Hydra.InfrastructureAbstractions
 {
     interface ISyncManager
     {

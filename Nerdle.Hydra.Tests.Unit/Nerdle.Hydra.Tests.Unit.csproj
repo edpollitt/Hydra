@@ -73,6 +73,7 @@
     <Compile Include="StateManagement\RollingWindowAveragingStateManagerTests\When_reading_current_state.cs" />
     <Compile Include="StateManagement\RollingWindowAveragingStateManagerTests\When_registering_a_failed_operation.cs" />
     <Compile Include="StateManagement\RollingWindowAveragingStateManagerTests\When_registering_a_successful_operation.cs" />
+    <Compile Include="StateManagement\RollingWindowAveragingStateManagerTests\_to_a_rolling_window_averaging_state_manager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

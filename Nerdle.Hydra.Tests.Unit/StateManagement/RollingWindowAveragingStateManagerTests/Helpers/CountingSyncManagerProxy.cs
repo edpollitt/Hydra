@@ -1,6 +1,6 @@
 using System;
 using System.Threading;
-using Nerdle.Hydra.Infrastructure;
+using Nerdle.Hydra.InfrastructureAbstractions;
 
 namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateManagerTests.Helpers
 {

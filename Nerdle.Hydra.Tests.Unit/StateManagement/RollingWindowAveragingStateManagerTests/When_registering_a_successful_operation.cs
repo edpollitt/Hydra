@@ -1,43 +1,22 @@
-﻿using System;
-using System.Threading;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Moq;
-using Nerdle.Hydra.Infrastructure;
 using Nerdle.Hydra.StateManagement;
-using Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateManagerTests.Helpers;
 using NUnit.Framework;
 
 namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateManagerTests
 {
     [TestFixture]
-    class When_registering_a_successful_operation
+    class When_registering_a_successful_operation : _to_a_rolling_window_averaging_state_manager
     {
-        ReaderWriterLockSlim _rwLock;
-        CountingSyncManagerProxy _syncManagerProxy;
-        Mock<IClock> _clock;
-        Mock<IRollingWindow> _successWindow;
-
-        readonly TimeSpan _failFor = TimeSpan.FromMinutes(1);
-
-        [SetUp]
-        public void BeforeEach()
-        {
-            _rwLock = new ReaderWriterLockSlim();
-            _syncManagerProxy = new CountingSyncManagerProxy(new SyncManager(_rwLock, TimeSpan.Zero));
-            _clock = new Mock<IClock>();
-            _clock.Setup(c => c.UtcNow).Returns(DateTime.UtcNow);
-            _successWindow = new Mock<IRollingWindow>();
-        }
-
         [TestCase(State.Unknown)]
         [TestCase(State.Failed)]
         [TestCase(State.Recovering)]
         [TestCase(State.Working)]
         public void An_upgradeable_read_lock_is_obtained_before_the_state_is_read(State state)
         {
-            var sut = new RollingWindowAveragingStateManager(_successWindow.Object, Mock.Of<IRollingWindow>(), _syncManagerProxy, _failFor, _clock.Object, state);
+            var sut = RollingWindowAveragingStateManagerWithState(state);
             sut.RegisterSuccess();
-            _syncManagerProxy.UpgradeableLocksTaken.Should().Be(1);
+            SyncManagerProxy.UpgradeableLocksTaken.Should().Be(1);
         }
 
         [TestCase(State.Unknown)]
@@ -46,7 +25,7 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         [TestCase(State.Working)]
         public void A_recovering_state_is_upgraded_to_working(State state)
         {
-            var sut = new RollingWindowAveragingStateManager(_successWindow.Object, Mock.Of<IRollingWindow>(), _syncManagerProxy, _failFor, _clock.Object, state);
+            var sut = RollingWindowAveragingStateManagerWithState(state);
             sut.RegisterSuccess();
             sut.CurrentState.Should().Be(state == State.Recovering ? State.Working : state);
         }
@@ -54,7 +33,7 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         [Test]
         public void The_state_changed_event_fires_if_the_registration_causes_state_to_be_updated()
         {
-            var sut = new RollingWindowAveragingStateManager(_successWindow.Object, Mock.Of<IRollingWindow>(), _syncManagerProxy, _failFor, _clock.Object, State.Recovering);
+            var sut = RollingWindowAveragingStateManagerWithState(State.Recovering);
             StateChangedArgs changeArgs = null;
             sut.StateChanged += (sender, args) => changeArgs = args;
 
@@ -68,11 +47,11 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         [Test]
         public void A_write_lock_is_obtained_if_the_registration_causes_state_to_be_updated()
         {
-            var sut = new RollingWindowAveragingStateManager(_successWindow.Object, Mock.Of<IRollingWindow>(), _syncManagerProxy, _failFor, _clock.Object, State.Recovering);
+            var sut = RollingWindowAveragingStateManagerWithState(State.Recovering);
             sut.StateChanged += (sender, args) =>
             {
-                _syncManagerProxy.UpgradeableLocksTaken.Should().Be(1);
-                _syncManagerProxy.WriteLocksTaken.Should().Be(1);
+                SyncManagerProxy.UpgradeableLocksTaken.Should().Be(1);
+                SyncManagerProxy.WriteLocksTaken.Should().Be(1);
             };
 
             sut.RegisterSuccess();
@@ -84,17 +63,17 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         [TestCase(State.Working, true)]
         public void The_success_window_is_marked_if_the_status_is_working_or_upgraded_to_working(State state, bool markExpected)
         {
-            var sut = new RollingWindowAveragingStateManager(_successWindow.Object, Mock.Of<IRollingWindow>(), _syncManagerProxy, _failFor, _clock.Object, state);
+            var sut = RollingWindowAveragingStateManagerWithState(state);
             sut.RegisterSuccess();
-            _successWindow.Verify(window => window.Mark(), markExpected ? Times.Once() : Times.Never());
+            SuccessWindow.Verify(window => window.Mark(), markExpected ? Times.Once() : Times.Never());
         }
 
         [Test]
         public void A_write_lock_is_obtained_before_the_success_window_is_marked()
         {
-            var sut = new RollingWindowAveragingStateManager(_successWindow.Object, Mock.Of<IRollingWindow>(), _syncManagerProxy, _failFor, _clock.Object);
+            var sut = RollingWindowAveragingStateManagerWithState(State.Working);
             sut.RegisterSuccess();
-            _syncManagerProxy.WriteLocksTaken.Should().Be(1);
+            SyncManagerProxy.WriteLocksTaken.Should().Be(1);
         }
     }
 }

@@ -1,18 +1,17 @@
 using System;
 using System.Threading;
-using Nerdle.Hydra.Infrastructure;
+using Nerdle.Hydra.InfrastructureAbstractions;
 
 namespace Nerdle.Hydra.StateManagement
 {
     public class RollingWindowAveragingStateManager : IStateManager
     {
-        readonly double _failureTriggerPercentage;
-        readonly int _minimumSampleSize;
-        readonly IRollingWindow _failureWindow;
         readonly IRollingWindow _successWindow;
+        readonly IRollingWindow _failureWindow;
         readonly ISyncManager _sync;
         readonly TimeSpan _failFor;
         readonly IClock _clock;
+        readonly ICondition<int, int> _failureCondition;
 
         State _state;
         DateTime? _failedUntil;
@@ -20,11 +19,13 @@ namespace Nerdle.Hydra.StateManagement
         public event StateChangedHandler StateChanged;
 
         public RollingWindowAveragingStateManager(TimeSpan windowLength, double failureTriggerPercentage, int minimumSampleSize, TimeSpan failFor, TimeSpan? synchLockTimeout = null) 
-            : this(new RollingWindow(windowLength), new RollingWindow(windowLength), new SyncManager(new ReaderWriterLockSlim(), synchLockTimeout), failFor, new SystemClock())
-        {
-            _failureTriggerPercentage = failureTriggerPercentage;
-            _minimumSampleSize = minimumSampleSize;
-        }
+            : this(new RollingWindow(windowLength), 
+                   new RollingWindow(windowLength), 
+                   new SyncManager(new ReaderWriterLockSlim(), synchLockTimeout), 
+                   failFor, 
+                   new SystemClock(), 
+                   new AveragingFailureCondition(failureTriggerPercentage, minimumSampleSize))
+        {}
 
         internal RollingWindowAveragingStateManager(
             IRollingWindow successWindow,
@@ -32,6 +33,7 @@ namespace Nerdle.Hydra.StateManagement
             ISyncManager syncManager,
             TimeSpan failFor,
             IClock clock,
+            ICondition<int, int> failureCondition,
             State initialState = State.Working)
         {
             _successWindow = successWindow;
@@ -39,6 +41,7 @@ namespace Nerdle.Hydra.StateManagement
             _failFor = failFor;
             _sync = syncManager;
             _clock = clock;
+            _failureCondition = failureCondition;
             _state = initialState;
     
             if (_state == State.Failed)
@@ -61,14 +64,20 @@ namespace Nerdle.Hydra.StateManagement
         {
             _sync.UpgradeableRead(() =>
             {
-                if (_state == State.Recovering)
+                switch (_state)
                 {
-                    UpdateState(State.Failed);
-                }
+                    case State.Recovering:
+                        UpdateState(State.Failed);
+                        return;
 
-                if (_state == State.Working)
-                {
-                    _sync.Write(() => _failureWindow.Mark());
+                    case State.Working:
+                        _sync.Write(() => _failureWindow.Mark());
+
+                        if (_failureCondition.Evaluate(_successWindow.Count, _failureWindow.Count))
+                        {
+                            UpdateState(State.Failed);
+                        }
+                        break;
                 }
             });
         }
