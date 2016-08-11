@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace Nerdle.Hydra.Tests.Unit.StateManagement.FailureRatioWithMinimumSampleSizeConditionTests
 {
     [TestFixture]
-    class When_evaluating_the_failure_condition
+    class When_evaluating_the_condition
     {
         const double FailureRatio = 0.5;
         const int MinimumSampleSize = 10;
