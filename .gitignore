@@ -253,3 +253,4 @@ paket-files/
 Nerdle.Hydra.Tests.Unit/Nerdle.Hydra.Tests.Unit.v2.ncrunchproject
 Nerdle.Hydra.v2.ncrunchsolution
 Nerdle.Hydra/Nerdle.Hydra.v2.ncrunchproject
+*.ncrunchproject

@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nerdle.Hydra", "Nerdle.Hydr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nerdle.Hydra.Tests.Unit", "Nerdle.Hydra.Tests.Unit\Nerdle.Hydra.Tests.Unit.csproj", "{EF88C5E6-5A16-4293-AD3D-44FD944AC9F7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nerdle.Hydra.Simulator", "Nerdle.Hydra.Simulator\Nerdle.Hydra.Simulator.csproj", "{7C8C08AD-EF9A-4CAF-BAF6-EC2AB43FE2B4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{EF88C5E6-5A16-4293-AD3D-44FD944AC9F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EF88C5E6-5A16-4293-AD3D-44FD944AC9F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EF88C5E6-5A16-4293-AD3D-44FD944AC9F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C8C08AD-EF9A-4CAF-BAF6-EC2AB43FE2B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C8C08AD-EF9A-4CAF-BAF6-EC2AB43FE2B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C8C08AD-EF9A-4CAF-BAF6-EC2AB43FE2B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C8C08AD-EF9A-4CAF-BAF6-EC2AB43FE2B4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
