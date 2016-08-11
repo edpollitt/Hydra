@@ -69,6 +69,7 @@
     <Compile Include="FailableComponentTests\When_instantiating_a_failable_component.cs" />
     <Compile Include="FailableComponentTests\_against_a_failable_component.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StateManagement\FailureRatioWithMinimumSampleSizeConditionTests\When_evaluating_the_failure_condition.cs" />
     <Compile Include="StateManagement\RollingWindowAveragingStateManagerTests\Helpers\CountingSyncManagerProxy.cs" />
     <Compile Include="StateManagement\RollingWindowAveragingStateManagerTests\When_reading_current_state.cs" />
     <Compile Include="StateManagement\RollingWindowAveragingStateManagerTests\When_registering_a_failed_operation.cs" />

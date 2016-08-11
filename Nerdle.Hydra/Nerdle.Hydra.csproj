@@ -49,7 +49,7 @@
     <Compile Include="InfrastructureAbstractions\IClock.cs" />
     <Compile Include="ICluster.cs" />
     <Compile Include="IFailable.cs" />
-    <Compile Include="StateManagement\AveragingFailureCondition.cs" />
+    <Compile Include="StateManagement\FailureRatioWithMinimumSampleSizeCondition.cs" />
     <Compile Include="StateManagement\ICondition.cs" />
     <Compile Include="StateManagement\IRollingWindow.cs" />
     <Compile Include="StateManagement\IStateManager.cs" />

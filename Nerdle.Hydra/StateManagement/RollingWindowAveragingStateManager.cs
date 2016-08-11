@@ -24,7 +24,7 @@ namespace Nerdle.Hydra.StateManagement
                    new SyncManager(new ReaderWriterLockSlim(), synchLockTimeout), 
                    failFor, 
                    new SystemClock(), 
-                   new AveragingFailureCondition(failureTriggerPercentage, minimumSampleSize))
+                   new FailureRatioWithMinimumSampleSizeCondition(failureTriggerPercentage, minimumSampleSize))
         {}
 
         internal RollingWindowAveragingStateManager(
