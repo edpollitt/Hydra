@@ -4,5 +4,6 @@
     {
         void Mark();
         int Count { get; }
+        void Reset();
     }
 }

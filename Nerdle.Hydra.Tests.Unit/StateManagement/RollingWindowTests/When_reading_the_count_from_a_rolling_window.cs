@@ -30,8 +30,8 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowTests
         {
             var now = DateTime.UtcNow;
             _clock.Setup(clock => clock.UtcNow).Returns(now);
-            
-            for(var i = 0; i < 10; i++)
+
+            for (var i = 0; i < 10; i++)
             {
                 _queue.Enqueue(now);
             }
@@ -44,7 +44,7 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowTests
         {
             var now = DateTime.UtcNow;
             _clock.Setup(clock => clock.UtcNow).Returns(now);
-            
+
             var times = new[]
             {
                 now - _windowLength - TimeSpan.FromSeconds(1),
@@ -52,7 +52,7 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowTests
                 now - _windowLength,
                 now
             };
-            
+
             foreach (var time in times)
             {
                 _queue.Enqueue(time);
@@ -60,6 +60,19 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowTests
 
             _sut.Count.Should().Be(2);
             _queue.Should().Equal(times.SkipWhile(time => time < now - _windowLength));
+        }
+    }
+
+    [TestFixture]
+    class When_resetting_a_rolling_window
+    {
+        [Test]
+        public void All_timestamps_in_the_window_are_cleared()
+        {
+            var queue = new Queue<DateTime>(new[] { DateTime.UtcNow, DateTime.UtcNow });
+            var sut = new RollingWindow(TimeSpan.FromSeconds(10), queue, Mock.Of<IClock>());
+            sut.Reset();
+            queue.Should().BeEmpty();
         }
     }
 }

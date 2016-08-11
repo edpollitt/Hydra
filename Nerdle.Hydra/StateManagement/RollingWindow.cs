@@ -45,6 +45,11 @@ namespace Nerdle.Hydra.StateManagement
             }
         }
 
+        public void Reset()
+        {
+            _queue.Clear();
+        }
+
         void Trim(DateTime windowEnd)
         {
             var windowStart = windowEnd.Subtract(_windowLength);

@@ -75,6 +75,11 @@ namespace Nerdle.Hydra.StateManagement
 
                         if (_failureCondition.Evaluate(_successWindow.Count, _failureWindow.Count))
                         {
+                            _sync.Write(() =>
+                            {
+                                _successWindow.Reset();
+                                _failureWindow.Reset();
+                            });
                             UpdateState(State.Failed);
                         }
                         break;

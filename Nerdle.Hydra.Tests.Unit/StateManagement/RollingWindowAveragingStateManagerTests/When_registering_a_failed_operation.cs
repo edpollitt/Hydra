@@ -88,12 +88,21 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         }
 
         [Test]
-        public void The_state_is_downgraded_to_failed_if_the_failure_condition_is_met()
+        public void The_state_is_set_to_failed_if_the_failure_condition_is_met()
         {
             FailureCondition.Setup(condition => condition.Evaluate(It.IsAny<int>(), It.IsAny<int>())).Returns(true);
             var sut = RollingWindowAveragingStateManagerWithState(State.Working);
             sut.RegisterFailure();
             sut.CurrentState.Should().Be(State.Failed);
+        }
+
+        [Test]
+        public void The_failure_windows_are_reset_if_the_failure_condition_is_met()
+        {
+            FailureCondition.Setup(condition => condition.Evaluate(It.IsAny<int>(), It.IsAny<int>())).Returns(true);
+            RollingWindowAveragingStateManagerWithState(State.Working).RegisterFailure();
+            SuccessWindow.Verify(window => window.Reset(), Times.Once);
+            FailureWindow.Verify(window => window.Reset(), Times.Once);
         }
     }
 }
