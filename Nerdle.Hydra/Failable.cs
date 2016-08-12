@@ -10,7 +10,10 @@ namespace Nerdle.Hydra
         readonly TComponent _component;
         readonly IStateManager _stateManager;
 
-        public Failable(TComponent component, string componentId, IStateManager stateManager)
+        public event EventHandler<Exception> Failed;
+        public event EventHandler Recovered;
+
+        public Failable(string componentId, TComponent component, IStateManager stateManager)
         {
             if (component == null)
                 throw new ArgumentNullException(nameof(component));
@@ -18,9 +21,11 @@ namespace Nerdle.Hydra
             if (stateManager == null)
                 throw new ArgumentNullException(nameof(stateManager));
 
+            ComponentId = componentId;
             _component = component;
             _stateManager = stateManager;
-            ComponentId = componentId;
+
+            stateManager.StateChanged += OnStateChanged;
         }
 
         public void Execute(Action<TComponent> command)
@@ -31,7 +36,7 @@ namespace Nerdle.Hydra
             }
             catch (Exception ex)
             {
-                _stateManager.RegisterFailure();
+                _stateManager.RegisterFailure(ex);
                 throw;
             }
             _stateManager.RegisterSuccess();
@@ -46,7 +51,7 @@ namespace Nerdle.Hydra
             }
             catch (Exception ex)
             {
-                _stateManager.RegisterFailure();
+                _stateManager.RegisterFailure(ex);
                 throw;
             }
             _stateManager.RegisterSuccess();
@@ -54,5 +59,14 @@ namespace Nerdle.Hydra
         }
 
         public bool IsAvailable => _stateManager.CurrentState >= State.Recovering;
+
+        void OnStateChanged(object sender, StateChangedArgs args)
+        {
+            if (args.CurrentState == State.Working)
+                Recovered?.Invoke(this, EventArgs.Empty);
+
+            else if (args.PreviousState == State.Working && args.CurrentState == State.Failed)
+                Failed?.Invoke(this, args.Exception);
+        }
     }
 }

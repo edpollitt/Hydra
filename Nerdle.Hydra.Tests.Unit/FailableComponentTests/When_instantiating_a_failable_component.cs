@@ -15,14 +15,14 @@ namespace Nerdle.Hydra.Tests.Unit.FailableComponentTests
         [TestCase(null)]
         public void The_component_id_is_set(string componentId)
         {
-            var sut = new Failable<IEnumerable>(new ArrayList(), componentId, Mock.Of<IStateManager>());
+            var sut = new Failable<IEnumerable>(componentId, new ArrayList(), Mock.Of<IStateManager>());
             sut.ComponentId.Should().Be(componentId);
         }
 
         [Test]
         public void A_component_must_be_supplied()
         {
-            Action instantiating = () => new Failable<ICollection>(null, string.Empty, Mock.Of<IStateManager>());
+            Action instantiating = () => new Failable<ICollection>(string.Empty, null, Mock.Of<IStateManager>());
 
             instantiating.ShouldThrowExactly<ArgumentNullException>().Which.ParamName.Should().Be("component");
         }
@@ -30,7 +30,7 @@ namespace Nerdle.Hydra.Tests.Unit.FailableComponentTests
         [Test]
         public void A_state_manager_must_be_supplied()
         {
-            Action instantiating = () => new Failable<ICollection>(new int[0], string.Empty, null);
+            Action instantiating = () => new Failable<ICollection>(string.Empty, new int[0], null);
 
             instantiating.ShouldThrowExactly<ArgumentNullException>().Which.ParamName.Should().Be("stateManager");
         }

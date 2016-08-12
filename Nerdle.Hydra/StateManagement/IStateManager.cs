@@ -1,3 +1,5 @@
+using System;
+
 namespace Nerdle.Hydra.StateManagement
 {
     public delegate void StateChangedHandler(object sender, StateChangedArgs args);
@@ -6,7 +8,7 @@ namespace Nerdle.Hydra.StateManagement
     {
         State CurrentState { get; }
         void RegisterSuccess();
-        void RegisterFailure();
+        void RegisterFailure(Exception exception);
 
         event StateChangedHandler StateChanged;
     }

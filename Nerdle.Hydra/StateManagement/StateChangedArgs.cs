@@ -7,10 +7,13 @@ namespace Nerdle.Hydra.StateManagement
         public State PreviousState { get; }
         public State CurrentState { get; }
 
-        public StateChangedArgs(State previousState, State currentState)
+        public Exception Exception { get; }
+
+        public StateChangedArgs(State previousState, State currentState, Exception exception = null)
         {
             PreviousState = previousState;
             CurrentState = currentState;
+            Exception = exception;
         }
     }
 }

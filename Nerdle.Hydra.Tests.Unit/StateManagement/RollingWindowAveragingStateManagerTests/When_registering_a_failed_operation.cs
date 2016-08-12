@@ -1,3 +1,4 @@
+using System;
 using FluentAssertions;
 using Moq;
 using Nerdle.Hydra.StateManagement;
@@ -14,7 +15,7 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         [TestCase(State.Working)]
         public void An_upgradeable_read_lock_is_obtained_before_the_state_is_read(State state)
         {
-            RollingWindowAveragingStateManagerWithState(state).RegisterFailure();
+            RollingWindowAveragingStateManagerWithState(state).RegisterFailure(new Exception());
             SyncManagerProxy.UpgradeableLocksTaken.Should().Be(1);
         }
 
@@ -25,14 +26,14 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         public void A_recovering_state_is_downgraded_to_failed(State state)
         {
             var sut = RollingWindowAveragingStateManagerWithState(state);
-            sut.RegisterFailure();
+            sut.RegisterFailure(new Exception());
             sut.CurrentState.Should().Be(state == State.Recovering ? State.Failed : state);
         }
 
         [Test]
         public void A_write_lock_is_obtained_before_a_recovering_state_is_downgraded()
         {
-            RollingWindowAveragingStateManagerWithState(State.Recovering).RegisterFailure();
+            RollingWindowAveragingStateManagerWithState(State.Recovering).RegisterFailure(new Exception());
             SyncManagerProxy.UpgradeableLocksTaken.Should().Be(1);
             SyncManagerProxy.WriteLocksTaken.Should().Be(1);
         }
@@ -43,12 +44,14 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
             var sut = RollingWindowAveragingStateManagerWithState(State.Recovering);
             StateChangedArgs changeArgs = null;
             sut.StateChanged += (sender, args) => changeArgs = args;
+            var exception = new AccessViolationException();
 
-            sut.RegisterFailure();
+            sut.RegisterFailure(exception);
 
             changeArgs.Should().NotBeNull();
             changeArgs.PreviousState.Should().Be(State.Recovering);
             changeArgs.CurrentState.Should().Be(State.Failed);
+            changeArgs.Exception.Should().Be(exception);
         }
 
         [TestCase(State.Unknown, false)]
@@ -57,14 +60,14 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         [TestCase(State.Working, true)]
         public void The_failure_window_is_marked_if_the_state_is_working(State state, bool markExpected)
         {
-            RollingWindowAveragingStateManagerWithState(state).RegisterFailure();
+            RollingWindowAveragingStateManagerWithState(state).RegisterFailure(new Exception());
             FailureWindow.Verify(window => window.Mark(), markExpected ? Times.Once() : Times.Never());
         }
 
         [Test]
         public void A_write_lock_is_obtained_before_marking_the_window()
         {
-            RollingWindowAveragingStateManagerWithState(State.Working).RegisterFailure();
+            RollingWindowAveragingStateManagerWithState(State.Working).RegisterFailure(new Exception());
             SyncManagerProxy.UpgradeableLocksTaken.Should().Be(1);
             SyncManagerProxy.WriteLocksTaken.Should().Be(1);
         }
@@ -74,7 +77,7 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         {
             SuccessWindow.Setup(window => window.Count).Returns(99);
             FailureWindow.Setup(window => window.Count).Returns(6);
-            RollingWindowAveragingStateManagerWithState(State.Working).RegisterFailure();
+            RollingWindowAveragingStateManagerWithState(State.Working).RegisterFailure(new Exception());
             FailureCondition.Verify(condition => condition.Evaluate(99, 6), Times.Once);
         }
 
@@ -83,7 +86,7 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         {
             FailureCondition.Setup(condition => condition.Evaluate(It.IsAny<int>(), It.IsAny<int>())).Returns(false);
             var sut = RollingWindowAveragingStateManagerWithState(State.Working);
-            sut.RegisterFailure();
+            sut.RegisterFailure(new Exception());
             sut.CurrentState.Should().Be(State.Working);
         }
 
@@ -92,7 +95,7 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         {
             FailureCondition.Setup(condition => condition.Evaluate(It.IsAny<int>(), It.IsAny<int>())).Returns(true);
             var sut = RollingWindowAveragingStateManagerWithState(State.Working);
-            sut.RegisterFailure();
+            sut.RegisterFailure(new Exception());
             sut.CurrentState.Should().Be(State.Failed);
         }
 
@@ -100,7 +103,7 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         public void The_failure_windows_are_reset_if_the_failure_condition_is_met()
         {
             FailureCondition.Setup(condition => condition.Evaluate(It.IsAny<int>(), It.IsAny<int>())).Returns(true);
-            RollingWindowAveragingStateManagerWithState(State.Working).RegisterFailure();
+            RollingWindowAveragingStateManagerWithState(State.Working).RegisterFailure(new Exception());
             SuccessWindow.Verify(window => window.Reset(), Times.Once);
             FailureWindow.Verify(window => window.Reset(), Times.Once);
         }

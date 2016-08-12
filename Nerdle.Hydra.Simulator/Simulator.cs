@@ -16,7 +16,7 @@ namespace Nerdle.Hydra.Simulator
             {
                 var stateManager = new RollingWindowAveragingStateManager(TimeSpan.FromSeconds(1), 0.5, 10, TimeSpan.FromSeconds(10));
                 stateManager.StateChanged += (sender, args) => Console.WriteLine($"{sender}: {args.PreviousState} -> {args.CurrentState}");
-                return new Failable<ComponentStub>(component, component.ToString(), stateManager);
+                return new Failable<ComponentStub>(component.ToString(), component, stateManager);
             }).ToList();
         
             _cluster = new Cluster<ComponentStub>(failableComponents);

@@ -42,6 +42,7 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
             changeArgs.Should().NotBeNull();
             changeArgs.PreviousState.Should().Be(State.Recovering);
             changeArgs.CurrentState.Should().Be(State.Working);
+            changeArgs.Exception.Should().BeNull();
         }
 
         [Test]

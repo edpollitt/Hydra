@@ -16,7 +16,7 @@ namespace Nerdle.Hydra.Tests.Unit.FailableComponentTests
         {
             WrappedComponent = new ArrayList();
             StateManager = new Mock<IStateManager>();
-            Sut = new Failable<IList>(WrappedComponent, "foo123", StateManager.Object);
+            Sut = new Failable<IList>("foo123", WrappedComponent, StateManager.Object);
         }
     }
 }

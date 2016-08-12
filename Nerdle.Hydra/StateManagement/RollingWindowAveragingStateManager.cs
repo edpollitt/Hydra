@@ -60,14 +60,14 @@ namespace Nerdle.Hydra.StateManagement
             });
         }
 
-        public void RegisterFailure()
+        public void RegisterFailure(Exception exception)
         {
             _sync.UpgradeableRead(() =>
             {
                 switch (_state)
                 {
                     case State.Recovering:
-                        UpdateState(State.Failed);
+                        UpdateState(State.Failed, exception);
                         return;
 
                     case State.Working:
@@ -80,7 +80,7 @@ namespace Nerdle.Hydra.StateManagement
                                 _successWindow.Reset();
                                 _failureWindow.Reset();
                             });
-                            UpdateState(State.Failed);
+                            UpdateState(State.Failed, exception);
                         }
                         break;
                 }
@@ -114,7 +114,7 @@ namespace Nerdle.Hydra.StateManagement
             }
         }
 
-        void UpdateState(State newState)
+        void UpdateState(State newState, Exception exception = null)
         {
             _sync.Write(() =>
             {
@@ -126,7 +126,7 @@ namespace Nerdle.Hydra.StateManagement
 
                 _failedUntil = newState == State.Failed ? (_clock.UtcNow + _failFor) : (DateTime?)null;
 
-                StateChanged?.Invoke(this, new StateChangedArgs(oldState, newState));
+                StateChanged?.Invoke(this, new StateChangedArgs(oldState, newState, exception));
             });
         }
     }
