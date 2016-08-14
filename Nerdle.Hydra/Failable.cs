@@ -62,10 +62,10 @@ namespace Nerdle.Hydra
 
         void OnStateChanged(object sender, StateChangedArgs args)
         {
-            if (args.CurrentState == State.Working)
+            if (args.CurrentState == State.Working && args.PreviousState == State.Recovering)
                 Recovered?.Invoke(this, EventArgs.Empty);
 
-            else if (args.PreviousState == State.Working && args.CurrentState == State.Failed)
+            else if (args.CurrentState == State.Failed && args.PreviousState == State.Working)
                 Failed?.Invoke(this, args.Exception);
         }
     }

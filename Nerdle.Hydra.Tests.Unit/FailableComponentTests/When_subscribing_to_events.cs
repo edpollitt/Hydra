@@ -29,19 +29,22 @@ namespace Nerdle.Hydra.Tests.Unit.FailableComponentTests
             _recoveredFiredCount = _failedFiredCount = 0;
         }
 
-        [Test]
-        public void The_recovered_event_fires_when_the_state_transitions_to_working()
+        [TestCase(State.Unknown, false)]
+        [TestCase(State.Failed, false)]
+        [TestCase(State.Recovering, true)]
+        [TestCase(State.Working, false)]
+        public void The_recovered_event_fires_when_the_state_transitions_from_recovering_to_working(State previousState, bool eventExpected)
         {
-            _stateManager.Raise(failable => failable.StateChanged += null, new StateChangedArgs(State.Recovering, State.Working));
-            _recoveredFiredCount.Should().Be(1);
+            _stateManager.Raise(failable => failable.StateChanged += null, new StateChangedArgs(previousState, State.Working));
             _failedFiredCount.Should().Be(0);
+            _recoveredFiredCount.Should().Be(eventExpected ? 1 : 0);
         }
 
         [TestCase(State.Unknown, false)]
         [TestCase(State.Failed, false)]
         [TestCase(State.Recovering, false)]
         [TestCase(State.Working, true)]
-        public void The_failed_event_fires_when_the_state_transitions_to_failed_if_the_previous_state_was_working(State previousState, bool eventExpected)
+        public void The_failed_event_fires_when_the_state_transitions_from_working_to_failed(State previousState, bool eventExpected)
         {
             _stateManager.Raise(failable => failable.StateChanged += null, new StateChangedArgs(previousState, State.Failed));
             _recoveredFiredCount.Should().Be(0);
