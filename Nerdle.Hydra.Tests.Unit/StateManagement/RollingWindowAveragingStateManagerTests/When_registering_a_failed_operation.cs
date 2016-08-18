@@ -78,13 +78,13 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
             SuccessWindow.Setup(window => window.Count).Returns(99);
             FailureWindow.Setup(window => window.Count).Returns(6);
             RollingWindowAveragingStateManagerWithState(State.Working).RegisterFailure(new Exception());
-            FailureCondition.Verify(condition => condition.Evaluate(99, 6), Times.Once);
+            FailureCondition.Verify(condition => condition.IsMet(99, 6), Times.Once);
         }
 
         [Test]
         public void The_state_is_unchanged_if_the_failure_condition_is_not_met()
         {
-            FailureCondition.Setup(condition => condition.Evaluate(It.IsAny<int>(), It.IsAny<int>())).Returns(false);
+            FailureCondition.Setup(condition => condition.IsMet(It.IsAny<int>(), It.IsAny<int>())).Returns(false);
             var sut = RollingWindowAveragingStateManagerWithState(State.Working);
             sut.RegisterFailure(new Exception());
             sut.CurrentState.Should().Be(State.Working);
@@ -93,7 +93,7 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         [Test]
         public void The_state_is_set_to_failed_if_the_failure_condition_is_met()
         {
-            FailureCondition.Setup(condition => condition.Evaluate(It.IsAny<int>(), It.IsAny<int>())).Returns(true);
+            FailureCondition.Setup(condition => condition.IsMet(It.IsAny<int>(), It.IsAny<int>())).Returns(true);
             var sut = RollingWindowAveragingStateManagerWithState(State.Working);
             sut.RegisterFailure(new Exception());
             sut.CurrentState.Should().Be(State.Failed);
@@ -102,7 +102,7 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         [Test]
         public void The_failure_windows_are_reset_if_the_failure_condition_is_met()
         {
-            FailureCondition.Setup(condition => condition.Evaluate(It.IsAny<int>(), It.IsAny<int>())).Returns(true);
+            FailureCondition.Setup(condition => condition.IsMet(It.IsAny<int>(), It.IsAny<int>())).Returns(true);
             RollingWindowAveragingStateManagerWithState(State.Working).RegisterFailure(new Exception());
             SuccessWindow.Verify(window => window.Reset(), Times.Once);
             FailureWindow.Verify(window => window.Reset(), Times.Once);

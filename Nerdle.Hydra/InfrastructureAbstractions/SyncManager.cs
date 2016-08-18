@@ -14,19 +14,19 @@ namespace Nerdle.Hydra.InfrastructureAbstractions
             _syncLockTimeout = syncLockTimeout ?? TimeSpan.FromSeconds(10);
         }
 
-        public void ReadOnly(Action synchronisedCommand)
+        public void ReadOnly(Action command)
         {
-            WithLock(synchronisedCommand, rw => rw.TryEnterReadLock(_syncLockTimeout), rw => rw.ExitReadLock());
+            WithLock(command, rw => rw.TryEnterReadLock(_syncLockTimeout), rw => rw.ExitReadLock());
         }
 
-        public void UpgradeableRead(Action synchronisedCommand)
+        public void UpgradeableRead(Action command)
         {
-            WithLock(synchronisedCommand, rw => rw.TryEnterUpgradeableReadLock(_syncLockTimeout), rw => rw.ExitUpgradeableReadLock());
+            WithLock(command, rw => rw.TryEnterUpgradeableReadLock(_syncLockTimeout), rw => rw.ExitUpgradeableReadLock());
         }
 
-        public void Write(Action synchronisedCommand)
+        public void Write(Action command)
         {
-            WithLock(synchronisedCommand, rw => rw.TryEnterWriteLock(_syncLockTimeout), rw => rw.ExitWriteLock());
+            WithLock(command, rw => rw.TryEnterWriteLock(_syncLockTimeout), rw => rw.ExitWriteLock());
         }
 
         void WithLock(Action synchronisedCommand, Func<ReaderWriterLockSlim, bool> tryEnterLock, Action<ReaderWriterLockSlim> exitLock)
@@ -44,19 +44,19 @@ namespace Nerdle.Hydra.InfrastructureAbstractions
             }
         }
 
-        public T ReadOnly<T>(Func<T> synchronisedQuery)
+        public T ReadOnly<T>(Func<T> query)
         {
-            return WithLock(synchronisedQuery, rw => rw.TryEnterReadLock(_syncLockTimeout), rw => rw.ExitReadLock());
+            return WithLock(query, rw => rw.TryEnterReadLock(_syncLockTimeout), rw => rw.ExitReadLock());
         }
 
-        public T UpgradeableRead<T>(Func<T> synchronisedQuery)
+        public T UpgradeableRead<T>(Func<T> query)
         {
-            return WithLock(synchronisedQuery, rw => rw.TryEnterUpgradeableReadLock(_syncLockTimeout), rw => rw.ExitUpgradeableReadLock());
+            return WithLock(query, rw => rw.TryEnterUpgradeableReadLock(_syncLockTimeout), rw => rw.ExitUpgradeableReadLock());
         }
 
-        public T Write<T>(Func<T> synchronisedQuery)
+        public T Write<T>(Func<T> query)
         {
-            return WithLock(synchronisedQuery, rw => rw.TryEnterWriteLock(_syncLockTimeout), rw => rw.ExitWriteLock());
+            return WithLock(query, rw => rw.TryEnterWriteLock(_syncLockTimeout), rw => rw.ExitWriteLock());
         }
 
         T WithLock<T>(Func<T> synchronisedQuery, Func<ReaderWriterLockSlim, bool> tryEnterLock, Action<ReaderWriterLockSlim> exitLock)

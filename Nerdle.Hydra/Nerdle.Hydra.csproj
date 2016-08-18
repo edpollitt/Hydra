@@ -49,7 +49,7 @@
     <Compile Include="InfrastructureAbstractions\IClock.cs" />
     <Compile Include="ICluster.cs" />
     <Compile Include="IFailable.cs" />
-    <Compile Include="StateManagement\FailureRatioWithMinimumSampleSizeCondition.cs" />
+    <Compile Include="StateManagement\FailurePercentageWithMinimumSampleSizeCondition.cs" />
     <Compile Include="StateManagement\ICondition.cs" />
     <Compile Include="StateManagement\IRollingWindow.cs" />
     <Compile Include="StateManagement\IStateManager.cs" />
@@ -57,7 +57,7 @@
     <Compile Include="InfrastructureAbstractions\ISyncManager.cs" />
     <Compile Include="StateManagement\RollingWindow.cs" />
     <Compile Include="StateManagement\RollingWindowAveragingStateManager.cs" />
-    <Compile Include="State.cs" />
+    <Compile Include="StateManagement\State.cs" />
     <Compile Include="StateManagement\StateChangedArgs.cs" />
     <Compile Include="InfrastructureAbstractions\SyncManager.cs" />
     <Compile Include="InfrastructureAbstractions\SystemClock.cs" />

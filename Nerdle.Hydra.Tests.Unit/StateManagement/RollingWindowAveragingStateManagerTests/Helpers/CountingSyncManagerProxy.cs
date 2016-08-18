@@ -21,40 +21,40 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
             _internalSyncManager = internalSyncManager;
         }
 
-        public void ReadOnly(Action synchronisedCommand)
+        public void ReadOnly(Action command)
         {
             Interlocked.Increment(ref _readOnlyLocks);
-            _internalSyncManager.ReadOnly(synchronisedCommand);
+            _internalSyncManager.ReadOnly(command);
         }
 
-        public void UpgradeableRead(Action synchronisedCommand)
+        public void UpgradeableRead(Action command)
         {
             Interlocked.Increment(ref _upgradeableLocks);
-            _internalSyncManager.UpgradeableRead(synchronisedCommand);
+            _internalSyncManager.UpgradeableRead(command);
         }
 
-        public void Write(Action synchronisedCommand)
+        public void Write(Action command)
         {
             Interlocked.Increment(ref _writeLocks);
-            _internalSyncManager.Write(synchronisedCommand);
+            _internalSyncManager.Write(command);
         }
 
-        public T ReadOnly<T>(Func<T> synchronisedQuery)
+        public T ReadOnly<T>(Func<T> query)
         {
             Interlocked.Increment(ref _readOnlyLocks);
-            return _internalSyncManager.ReadOnly(synchronisedQuery);
+            return _internalSyncManager.ReadOnly(query);
         }
 
-        public T UpgradeableRead<T>(Func<T> synchronisedQuery)
+        public T UpgradeableRead<T>(Func<T> query)
         {
             Interlocked.Increment(ref _upgradeableLocks);
-            return _internalSyncManager.UpgradeableRead(synchronisedQuery);
+            return _internalSyncManager.UpgradeableRead(query);
         }
 
-        public T Write<T>(Func<T> synchronisedQuery)
+        public T Write<T>(Func<T> query)
         {
             Interlocked.Increment(ref _writeLocks);
-            return _internalSyncManager.Write(synchronisedQuery);
+            return _internalSyncManager.Write(query);
         }
     }
 }

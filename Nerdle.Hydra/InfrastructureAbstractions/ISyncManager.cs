@@ -4,11 +4,11 @@ namespace Nerdle.Hydra.InfrastructureAbstractions
 {
     interface ISyncManager
     {
-        void ReadOnly(Action synchronisedCommand);
-        void UpgradeableRead(Action synchronisedCommand);
-        void Write(Action synchronisedCommand);
-        T ReadOnly<T>(Func<T> synchronisedQuery);
-        T UpgradeableRead<T>(Func<T> synchronisedQuery);
-        T Write<T>(Func<T> synchronisedQuery);
+        void ReadOnly(Action command);
+        void UpgradeableRead(Action command);
+        void Write(Action command);
+        T ReadOnly<T>(Func<T> query);
+        T UpgradeableRead<T>(Func<T> query);
+        T Write<T>(Func<T> query);
     }
 }

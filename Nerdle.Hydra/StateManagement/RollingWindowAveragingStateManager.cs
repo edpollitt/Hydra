@@ -24,7 +24,7 @@ namespace Nerdle.Hydra.StateManagement
                    new SyncManager(new ReaderWriterLockSlim(), synchLockTimeout), 
                    failFor, 
                    new SystemClock(), 
-                   new FailureRatioWithMinimumSampleSizeCondition(failureTriggerPercentage, minimumSampleSize))
+                   new FailurePercentageWithMinimumSampleSizeCondition(failureTriggerPercentage, minimumSampleSize))
         {}
 
         internal RollingWindowAveragingStateManager(
@@ -73,7 +73,7 @@ namespace Nerdle.Hydra.StateManagement
                     case State.Working:
                         _sync.Write(() => _failureWindow.Mark());
 
-                        if (_failureCondition.Evaluate(_successWindow.Count, _failureWindow.Count))
+                        if (_failureCondition.IsMet(_successWindow.Count, _failureWindow.Count))
                         {
                             _sync.Write(() =>
                             {
@@ -94,8 +94,8 @@ namespace Nerdle.Hydra.StateManagement
                 // Using a double lock/evaluation pattern as we want to avoid taking an upgradeable lock if possible
                 var result = _sync.ReadOnly(() =>
                 {
-                    var stateRequiresModification = _state == State.Failed && (_failedUntil == null || _failedUntil <= _clock.UtcNow);
-                    return stateRequiresModification ? (State?)null : _state;
+                    var stateIsStale = _state == State.Failed && (_failedUntil == null || _failedUntil <= _clock.UtcNow);
+                    return stateIsStale ? (State?)null : _state;
                 });
 
                 if (result.HasValue)
@@ -103,8 +103,8 @@ namespace Nerdle.Hydra.StateManagement
 
                 return _sync.UpgradeableRead(() =>
                 {
-                    var stateRequiresModification = _state == State.Failed && (_failedUntil == null || _failedUntil <= _clock.UtcNow);
-                    if (stateRequiresModification)
+                    var stateIsStale = _state == State.Failed && (_failedUntil == null || _failedUntil <= _clock.UtcNow);
+                    if (stateIsStale)
                     {
                         UpdateState(State.Recovering);
                     }

@@ -1,4 +1,4 @@
-namespace Nerdle.Hydra
+namespace Nerdle.Hydra.StateManagement
 {
     public enum State
     {
