@@ -53,7 +53,7 @@ namespace Nerdle.Hydra.StateManagement
             _sync.UpgradeableRead(() =>
             {
                 if (_state == State.Recovering)
-                    UpdateState(State.Working);
+                    UpdateStateTo(State.Working);
 
                 if (_state == State.Working)
                     _sync.Write(() => _successWindow.Mark());
@@ -67,7 +67,7 @@ namespace Nerdle.Hydra.StateManagement
                 switch (_state)
                 {
                     case State.Recovering:
-                        UpdateState(State.Failed, exception);
+                        UpdateStateTo(State.Failed, exception);
                         return;
 
                     case State.Working:
@@ -80,7 +80,7 @@ namespace Nerdle.Hydra.StateManagement
                                 _successWindow.Reset();
                                 _failureWindow.Reset();
                             });
-                            UpdateState(State.Failed, exception);
+                            UpdateStateTo(State.Failed, exception);
                         }
                         break;
                 }
@@ -106,7 +106,7 @@ namespace Nerdle.Hydra.StateManagement
                     var stateIsStale = _state == State.Failed && (_failedUntil == null || _failedUntil <= _clock.UtcNow);
                     if (stateIsStale)
                     {
-                        UpdateState(State.Recovering);
+                        UpdateStateTo(State.Recovering);
                     }
 
                     return _state;
@@ -114,7 +114,7 @@ namespace Nerdle.Hydra.StateManagement
             }
         }
 
-        void UpdateState(State newState, Exception exception = null)
+        void UpdateStateTo(State newState, Exception exception = null)
         {
             _sync.Write(() =>
             {

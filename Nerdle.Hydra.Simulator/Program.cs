@@ -1,27 +1,35 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using log4net;
+using log4net.Config;
+using Nerdle.Hydra.Simulator.Configuration;
+using Config = Nerdle.AutoConfig.AutoConfig;
 
 namespace Nerdle.Hydra.Simulator
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            const int iterations = 10000;
-            const int parallelism = 5;
-            const double baseFailureRate = 0.1;
-            const int numberOfComponents = 3;
+            XmlConfigurator.Configure();
 
-            var components = Enumerable.Range(1, numberOfComponents).Select(id => new ComponentStub(id, baseFailureRate)).ToList();
-            var sim = new Simulator(components);
+            var log = LogManager.GetLogger("Default");
+
+            var config = Config.Map<ISimulationConfiguration>();
+            
+            var components = new [] { "Primary", "Secondary", "Tertiary" }
+                .Select(id => new ComponentStub(id, config.Component.BaseFailureRate, config.Component.OperationDelay))
+                .ToList();
+
+            var sim = new Simulation(components, config.RollingWindow, config.Iterations, config.Parallelism, log);
 
             var sw = new Stopwatch();
             sw.Start();
-            sim.Run(iterations, parallelism);
+            sim.Run();
             sw.Stop();
 
-            Console.WriteLine($"Finished {iterations} commands in {sw.Elapsed.TotalSeconds} s.");
+            log.Info($"Finished {config.Iterations} iterations in {sw.Elapsed.TotalSeconds} s.");
             Console.ReadKey();
         }
     }
