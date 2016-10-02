@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using Moq;
 using NUnit.Framework;
 using FluentAssertions;
