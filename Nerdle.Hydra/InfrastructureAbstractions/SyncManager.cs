@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using Nerdle.Hydra.Exceptions;
 
 namespace Nerdle.Hydra.InfrastructureAbstractions
 {
@@ -14,22 +15,22 @@ namespace Nerdle.Hydra.InfrastructureAbstractions
             _syncLockTimeout = syncLockTimeout ?? TimeSpan.FromSeconds(10);
         }
 
-        public void ReadOnly(Action command)
+        public void ReadOnly(Action command, LockTimeoutBehaviour timeoutBehaviour = LockTimeoutBehaviour.Throw)
         {
-            WithLock(command, rw => rw.TryEnterReadLock(_syncLockTimeout), rw => rw.ExitReadLock());
+            WithLock(command, rw => rw.TryEnterReadLock(_syncLockTimeout), rw => rw.ExitReadLock(), timeoutBehaviour);
         }
 
-        public void UpgradeableRead(Action command)
+        public void UpgradeableRead(Action command, LockTimeoutBehaviour timeoutBehaviour = LockTimeoutBehaviour.Throw)
         {
-            WithLock(command, rw => rw.TryEnterUpgradeableReadLock(_syncLockTimeout), rw => rw.ExitUpgradeableReadLock());
+            WithLock(command, rw => rw.TryEnterUpgradeableReadLock(_syncLockTimeout), rw => rw.ExitUpgradeableReadLock(), timeoutBehaviour);
         }
 
-        public void Write(Action command)
+        public void Write(Action command, LockTimeoutBehaviour timeoutBehaviour = LockTimeoutBehaviour.Throw)
         {
-            WithLock(command, rw => rw.TryEnterWriteLock(_syncLockTimeout), rw => rw.ExitWriteLock());
+            WithLock(command, rw => rw.TryEnterWriteLock(_syncLockTimeout), rw => rw.ExitWriteLock(), timeoutBehaviour);
         }
 
-        void WithLock(Action synchronisedCommand, Func<ReaderWriterLockSlim, bool> tryEnterLock, Action<ReaderWriterLockSlim> exitLock)
+        void WithLock(Action synchronisedCommand, Func<ReaderWriterLockSlim, bool> tryEnterLock, Action<ReaderWriterLockSlim> exitLock, LockTimeoutBehaviour timeoutBehaviour)
         {
             if (tryEnterLock(_rwLock))
             {
@@ -42,24 +43,31 @@ namespace Nerdle.Hydra.InfrastructureAbstractions
                     exitLock(_rwLock);
                 }
             }
+            else
+            {
+                if (timeoutBehaviour == LockTimeoutBehaviour.Ignore)
+                    return;
+
+                throw new LockEntryTimeoutException($"Failed to obtain a sync lock. Waited for {_syncLockTimeout} before giving up.");
+            }
         }
 
-        public T ReadOnly<T>(Func<T> query)
+        public T ReadOnly<T>(Func<T> query, LockTimeoutBehaviour timeoutBehaviour = LockTimeoutBehaviour.Throw)
         {
-            return WithLock(query, rw => rw.TryEnterReadLock(_syncLockTimeout), rw => rw.ExitReadLock());
+            return WithLock(query, rw => rw.TryEnterReadLock(_syncLockTimeout), rw => rw.ExitReadLock(), timeoutBehaviour);
         }
 
-        public T UpgradeableRead<T>(Func<T> query)
+        public T UpgradeableRead<T>(Func<T> query, LockTimeoutBehaviour timeoutBehaviour = LockTimeoutBehaviour.Throw)
         {
-            return WithLock(query, rw => rw.TryEnterUpgradeableReadLock(_syncLockTimeout), rw => rw.ExitUpgradeableReadLock());
+            return WithLock(query, rw => rw.TryEnterUpgradeableReadLock(_syncLockTimeout), rw => rw.ExitUpgradeableReadLock(), timeoutBehaviour);
         }
 
-        public T Write<T>(Func<T> query)
+        public T Write<T>(Func<T> query, LockTimeoutBehaviour timeoutBehaviour = LockTimeoutBehaviour.Throw)
         {
-            return WithLock(query, rw => rw.TryEnterWriteLock(_syncLockTimeout), rw => rw.ExitWriteLock());
+            return WithLock(query, rw => rw.TryEnterWriteLock(_syncLockTimeout), rw => rw.ExitWriteLock(), timeoutBehaviour);
         }
 
-        T WithLock<T>(Func<T> synchronisedQuery, Func<ReaderWriterLockSlim, bool> tryEnterLock, Action<ReaderWriterLockSlim> exitLock)
+        T WithLock<T>(Func<T> synchronisedQuery, Func<ReaderWriterLockSlim, bool> tryEnterLock, Action<ReaderWriterLockSlim> exitLock, LockTimeoutBehaviour timeoutBehaviour)
         {
             if (tryEnterLock(_rwLock))
             {
@@ -72,7 +80,11 @@ namespace Nerdle.Hydra.InfrastructureAbstractions
                     exitLock(_rwLock);
                 }
             }
-            return default(T);
+
+            if (timeoutBehaviour == LockTimeoutBehaviour.Ignore)
+                return default(T);
+
+            throw new LockEntryTimeoutException($"Failed to obtain a sync lock. Waited for {_syncLockTimeout} before giving up.");
         }
     }
 }

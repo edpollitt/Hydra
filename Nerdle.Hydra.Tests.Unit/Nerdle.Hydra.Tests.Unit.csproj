@@ -60,8 +60,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DynamicClusterTests\When_adding_a_component.cs" />
+    <Compile Include="DynamicClusterTests\When_executing_a_command.cs" />
+    <Compile Include="DynamicClusterTests\When_executing_a_query.cs" />
+    <Compile Include="DynamicClusterTests\When_removing_a_component.cs" />
+    <Compile Include="DynamicClusterTests\When_replacing_a_component.cs" />
+    <Compile Include="DynamicClusterTests\_on_a_dynamic_cluster_of.cs" />
     <Compile Include="ClusterTests\When_executing_a_command.cs" />
-    <Compile Include="ClusterTests\_against_a_cluster_of.cs" />
+    <Compile Include="ClusterTests\_on_a_cluster_of.cs" />
     <Compile Include="ClusterTests\When_executing_a_query.cs" />
     <Compile Include="FailableComponentTests\When_assessing_availability.cs" />
     <Compile Include="FailableComponentTests\When_executing_a_command.cs" />

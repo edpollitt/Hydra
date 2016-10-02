@@ -21,40 +21,40 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
             _internalSyncManager = internalSyncManager;
         }
 
-        public void ReadOnly(Action command)
+        public void ReadOnly(Action command, LockTimeoutBehaviour timeoutBehaviour = LockTimeoutBehaviour.Throw)
         {
             Interlocked.Increment(ref _readOnlyLocks);
-            _internalSyncManager.ReadOnly(command);
+            _internalSyncManager.ReadOnly(command, timeoutBehaviour);
         }
 
-        public void UpgradeableRead(Action command)
+        public void UpgradeableRead(Action command, LockTimeoutBehaviour timeoutBehaviour = LockTimeoutBehaviour.Throw)
         {
             Interlocked.Increment(ref _upgradeableLocks);
-            _internalSyncManager.UpgradeableRead(command);
+            _internalSyncManager.UpgradeableRead(command, timeoutBehaviour);
         }
 
-        public void Write(Action command)
+        public void Write(Action command, LockTimeoutBehaviour timeoutBehaviour = LockTimeoutBehaviour.Throw)
         {
             Interlocked.Increment(ref _writeLocks);
-            _internalSyncManager.Write(command);
+            _internalSyncManager.Write(command, timeoutBehaviour);
         }
 
-        public T ReadOnly<T>(Func<T> query)
+        public T ReadOnly<T>(Func<T> query, LockTimeoutBehaviour timeoutBehaviour = LockTimeoutBehaviour.Throw)
         {
             Interlocked.Increment(ref _readOnlyLocks);
-            return _internalSyncManager.ReadOnly(query);
+            return _internalSyncManager.ReadOnly(query, timeoutBehaviour);
         }
 
-        public T UpgradeableRead<T>(Func<T> query)
+        public T UpgradeableRead<T>(Func<T> query, LockTimeoutBehaviour timeoutBehaviour = LockTimeoutBehaviour.Throw)
         {
             Interlocked.Increment(ref _upgradeableLocks);
-            return _internalSyncManager.UpgradeableRead(query);
+            return _internalSyncManager.UpgradeableRead(query, timeoutBehaviour);
         }
 
-        public T Write<T>(Func<T> query)
+        public T Write<T>(Func<T> query, LockTimeoutBehaviour timeoutBehaviour = LockTimeoutBehaviour.Throw)
         {
             Interlocked.Increment(ref _writeLocks);
-            return _internalSyncManager.Write(query);
+            return _internalSyncManager.Write(query, timeoutBehaviour);
         }
     }
 }

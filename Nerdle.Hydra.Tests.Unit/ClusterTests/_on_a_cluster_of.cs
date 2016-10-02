@@ -5,7 +5,7 @@ using NUnit.Framework;
 
 namespace Nerdle.Hydra.Tests.Unit.ClusterTests
 {
-    abstract class _against_a_cluster_of<T>
+    abstract class _on_a_cluster_of<T>
     {
         protected const string Primary = "primary";
         protected const string Secondary = "secondary";
@@ -22,7 +22,7 @@ namespace Nerdle.Hydra.Tests.Unit.ClusterTests
                 .Select(id =>
                 {
                     var component = new Mock<IFailable<T>>();
-                    component.Setup(c => c.ComponentId).Returns((string) id);
+                    component.Setup(c => c.ComponentId).Returns(id);
                     return component;
                 })
                 .ToDictionary(component => component.Object.ComponentId, component => component);

@@ -10,7 +10,6 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
 {
     class _to_a_rolling_window_averaging_state_manager
     {
-        protected ReaderWriterLockSlim RwLock;
         protected CountingSyncManagerProxy SyncManagerProxy;
         protected Mock<IClock> Clock;
         protected Mock<IRollingWindow> SuccessWindow;
@@ -22,8 +21,7 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         [SetUp]
         public void BeforeEach()
         {
-            RwLock = new ReaderWriterLockSlim();
-            SyncManagerProxy = new CountingSyncManagerProxy(new SyncManager(RwLock, TimeSpan.Zero));
+            SyncManagerProxy = new CountingSyncManagerProxy(new SyncManager(new ReaderWriterLockSlim(), TimeSpan.Zero));
             Clock = new Mock<IClock>();
             Clock.Setup(c => c.UtcNow).Returns(DateTime.UtcNow);
             SuccessWindow = new Mock<IRollingWindow>();

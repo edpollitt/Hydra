@@ -56,6 +56,7 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         public void The_unknown_state_is_returned_if_a_sync_lock_cannot_be_obtained_within_the_configured_period(State state)
         {
             var sut = RollingWindowAveragingStateManagerWithState(state);
+            // enter the lock on a different thread
             Task.Run(() => _rwLock.EnterWriteLock()).Wait();
             sut.CurrentState.Should().Be(State.Unknown);
         }

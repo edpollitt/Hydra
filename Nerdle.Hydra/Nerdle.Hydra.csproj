@@ -43,12 +43,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Cluster.cs" />
+    <Compile Include="ComponentPriority.cs" />
+    <Compile Include="DynamicCluster.cs" />
     <Compile Include="Exceptions\ClusterFailureException.cs" />
     <Compile Include="ClusterResult.cs" />
+    <Compile Include="Exceptions\LockEntryTimeoutException.cs" />
     <Compile Include="Failable.cs" />
+    <Compile Include="IDynamicCluster.cs" />
     <Compile Include="InfrastructureAbstractions\IClock.cs" />
     <Compile Include="ICluster.cs" />
     <Compile Include="IFailable.cs" />
+    <Compile Include="InfrastructureAbstractions\LockTimeoutBehaviour.cs" />
     <Compile Include="StateManagement\FailurePercentageWithMinimumSampleSizeCondition.cs" />
     <Compile Include="StateManagement\ICondition.cs" />
     <Compile Include="StateManagement\IRollingWindow.cs" />

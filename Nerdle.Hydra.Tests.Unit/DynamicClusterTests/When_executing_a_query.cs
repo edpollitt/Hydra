@@ -5,19 +5,30 @@ using Moq;
 using Nerdle.Hydra.Exceptions;
 using NUnit.Framework;
 
-namespace Nerdle.Hydra.Tests.Unit.ClusterTests
+namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests
 {
     [TestFixture]
-    class When_executing_a_query : _on_a_cluster_of<Queue>
+    class When_executing_a_query : _on_a_dynamic_cluster_of<Queue>
     {
         readonly Func<Queue, object> _theQuery = service => service.Peek();
+
+        [Test]
+        public void A_read_lock_is_obtained()
+        {
+            foreach (var component in Components)
+                component.Value.Setup(c => c.IsAvailable).Returns(true);
+
+            Sut.Execute(_theQuery);
+            SyncManagerProxy.ReadOnlyLocksTaken.Should().Be(1);
+        }
 
         [TestCase(true, true, true, Primary)]
         [TestCase(true, false, false, Primary)]
         [TestCase(false, true, true, Secondary)]
         [TestCase(false, true, false, Secondary)]
         [TestCase(false, false, true, Tertiary)]
-        public void The_call_is_routed_to_the_first_working_component(bool primaryAvailability, bool secondaryAvailability, bool tertiaryAvailability, string expectedHandler)
+        public void The_call_is_routed_to_the_first_working_component(bool primaryAvailability,
+            bool secondaryAvailability, bool tertiaryAvailability, string expectedHandler)
         {
             Components[Primary].Setup(component => component.IsAvailable).Returns(primaryAvailability);
             Components[Secondary].Setup(component => component.IsAvailable).Returns(secondaryAvailability);
@@ -26,7 +37,8 @@ namespace Nerdle.Hydra.Tests.Unit.ClusterTests
             var result = Sut.Execute(_theQuery);
 
             foreach (var component in Components)
-                component.Value.Verify(c => c.Execute(_theQuery), component.Key == expectedHandler ? Times.Once() : Times.Never());
+                component.Value.Verify(c => c.Execute(_theQuery),
+                    component.Key == expectedHandler ? Times.Once() : Times.Never());
 
             result.HandledByComponentId.Should().Be(expectedHandler);
         }
@@ -52,7 +64,8 @@ namespace Nerdle.Hydra.Tests.Unit.ClusterTests
 
             Action executing = () => Sut.Execute(_theQuery);
 
-            executing.ShouldThrow<ClusterFailureException>().WithMessage("There are no currently available components in the cluster to process the request.");
+            executing.ShouldThrow<ClusterFailureException>()
+                .WithMessage("There are no currently available components in the cluster to process the request.");
         }
 
         [Test]
@@ -66,7 +79,9 @@ namespace Nerdle.Hydra.Tests.Unit.ClusterTests
 
             Action executing = () => Sut.Execute(_theQuery);
 
-            executing.ShouldThrow<ClusterFailureException>().WithMessage("There are available components in the cluster, but the request was not successfully processed by any component.")
+            executing.ShouldThrow<ClusterFailureException>()
+                .WithMessage(
+                    "There are available components in the cluster, but the request was not successfully processed by any component.")
                 .And.InnerException.Should().BeOfType<AggregateException>().Which.InnerExceptions.Count.Should().Be(3);
         }
 

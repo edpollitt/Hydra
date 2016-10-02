@@ -5,12 +5,22 @@ using NUnit.Framework;
 using FluentAssertions;
 using Nerdle.Hydra.Exceptions;
 
-namespace Nerdle.Hydra.Tests.Unit.ClusterTests
+namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests
 {
     [TestFixture]
-    class When_executing_a_command : _on_a_cluster_of<Stack>
+    class When_executing_a_command : _on_a_dynamic_cluster_of<Stack>
     {
         readonly Action<Stack> _theCommand = stack => stack.Clear();
+
+        [Test]
+        public void A_read_lock_is_obtained()
+        {
+            foreach (var component in Components)
+                component.Value.Setup(c => c.IsAvailable).Returns(true);
+
+            Sut.Execute(_theCommand);
+            SyncManagerProxy.ReadOnlyLocksTaken.Should().Be(1);
+        }
 
         [TestCase(true, true, true, Primary)]
         [TestCase(true, false, false, Primary)]

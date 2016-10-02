@@ -96,7 +96,7 @@ namespace Nerdle.Hydra.StateManagement
                 {
                     var stateIsStale = _state == State.Failed && (_failedUntil == null || _failedUntil <= _clock.UtcNow);
                     return stateIsStale ? (State?)null : _state;
-                });
+                }, LockTimeoutBehaviour.Ignore);
 
                 if (result.HasValue)
                     return result.Value;
@@ -110,7 +110,7 @@ namespace Nerdle.Hydra.StateManagement
                     }
 
                     return _state;
-                });
+                }, LockTimeoutBehaviour.Ignore);
             }
         }
 

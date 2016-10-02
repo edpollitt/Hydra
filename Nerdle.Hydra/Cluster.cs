@@ -7,14 +7,14 @@ namespace Nerdle.Hydra
 {
     public class Cluster<TComponent> : ICluster<TComponent>
     {
-        readonly IEnumerable<IFailable<TComponent>> _components;
+        protected readonly IList<IFailable<TComponent>> Components;
 
         public Cluster(IEnumerable<IFailable<TComponent>> components)
         {
-            _components = components;
+            Components = components.ToList();
         }
 
-        public ClusterResult Execute(Action<TComponent> command)
+        public virtual ClusterResult Execute(Action<TComponent> command)
         {
             return ExecuteInternal(component =>
             {
@@ -23,7 +23,7 @@ namespace Nerdle.Hydra
             });
         }
 
-        public ClusterResult<TResult> Execute<TResult>(Func<TComponent, TResult> query)
+        public virtual ClusterResult<TResult> Execute<TResult>(Func<TComponent, TResult> query)
         {
             return ExecuteInternal(component =>
             {
@@ -37,7 +37,7 @@ namespace Nerdle.Hydra
             var exceptions = new List<Exception>();
 
             // avoid eagerly enumerating components, as evaluating availability may be expensive (depending on availability heuristic in use)
-            foreach (var component in _components.Where(c => c.IsAvailable))
+            foreach (var component in Components.Where(c => c.IsAvailable))
             {
                 try
                 {
@@ -49,12 +49,7 @@ namespace Nerdle.Hydra
                 }
             }
 
-            throw exceptions.Count > 0
-                ? new ClusterFailureException(
-                    "There are available components in the cluster, but the request was not successfully processed by any component.",
-                    exceptions.Count == 1 ? exceptions.First() : new AggregateException(exceptions))
-                : new ClusterFailureException(
-                    "There are no currently available components in the cluster to process the request.");
+            throw exceptions.Count > 0 ? new ClusterFailureException("There are available components in the cluster, but the request was not successfully processed by any component.", exceptions.Count == 1 ? exceptions.First() : new AggregateException(exceptions)) : new ClusterFailureException("There are no currently available components in the cluster to process the request.");
         }
     }
 }
