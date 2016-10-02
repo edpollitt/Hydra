@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using FluentAssertions;
 using Moq;
 using Nerdle.Hydra.Exceptions;
@@ -8,9 +9,9 @@ using NUnit.Framework;
 namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests
 {
     [TestFixture]
-    class When_executing_a_query : _on_a_dynamic_cluster_of<Queue>
+    class When_executing_a_query : _on_a_dynamic_cluster_of<IEnumerator<int>>
     {
-        readonly Func<Queue, object> _theQuery = service => service.Peek();
+        readonly Func<IEnumerator<int>, int> _theQuery = enumerator => enumerator.Current;
 
         [Test]
         public void A_read_lock_is_obtained()
@@ -44,9 +45,9 @@ namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests
         }
 
         [TestCase(1)]
-        [TestCase(true)]
-        [TestCase("foo")]
-        public void The_query_result_is_returned(object queryResult)
+        [TestCase(5)]
+        [TestCase(int.MinValue)]
+        public void The_query_result_is_returned(int queryResult)
         {
             Components[Primary].Setup(component => component.IsAvailable).Returns(true);
             Components[Primary].Setup(component => component.Execute(_theQuery)).Returns(queryResult);

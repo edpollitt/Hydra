@@ -8,9 +8,9 @@ using Nerdle.Hydra.Exceptions;
 namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests
 {
     [TestFixture]
-    class When_executing_a_command : _on_a_dynamic_cluster_of<Stack>
+    class When_executing_a_command : _on_a_dynamic_cluster_of<IDisposable>
     {
-        readonly Action<Stack> _theCommand = stack => stack.Clear();
+        readonly Action<IDisposable> _theCommand = disposable => disposable.Dispose();
 
         [Test]
         public void A_read_lock_is_obtained()
