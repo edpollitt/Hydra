@@ -4,7 +4,7 @@ using Nerdle.Hydra.Exceptions;
 
 namespace Nerdle.Hydra.InfrastructureAbstractions
 {
-    class SyncManager : ISyncManager
+    public class SyncManager : ISyncManager
     {
         readonly ReaderWriterLockSlim _rwLock;
         readonly TimeSpan _syncLockTimeout;

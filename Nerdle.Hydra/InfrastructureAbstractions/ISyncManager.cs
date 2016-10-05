@@ -2,7 +2,7 @@ using System;
 
 namespace Nerdle.Hydra.InfrastructureAbstractions
 {
-    interface ISyncManager
+    public interface ISyncManager
     {
         void ReadOnly(Action command, LockTimeoutBehaviour timeoutBehaviour = LockTimeoutBehaviour.Throw);
         void UpgradeableRead(Action command, LockTimeoutBehaviour timeoutBehaviour = LockTimeoutBehaviour.Throw);

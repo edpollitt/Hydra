@@ -1,6 +1,6 @@
 namespace Nerdle.Hydra.InfrastructureAbstractions
 {
-    enum LockTimeoutBehaviour
+    public enum LockTimeoutBehaviour
     {
         Throw,
         Ignore

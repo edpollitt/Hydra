@@ -6,5 +6,8 @@ namespace Nerdle.Hydra
     {
         ClusterResult Execute(Action<TComponent> command);
         ClusterResult<TResult> Execute<TResult>(Func<TComponent, TResult> query);
+
+        event EventHandler<Exception> ComponentFailed;
+        event EventHandler ComponentRecovered;
     }
 }

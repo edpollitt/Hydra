@@ -9,7 +9,7 @@ namespace Nerdle.Hydra
     {
         readonly ISyncManager _syncManager;
 
-        internal DynamicCluster(IEnumerable<IFailable<TComponent>> components, ISyncManager syncManager) : base(components)
+        public DynamicCluster(IEnumerable<IFailable<TComponent>> components, ISyncManager syncManager) : base(components)
         {
             _syncManager = syncManager;
         }
