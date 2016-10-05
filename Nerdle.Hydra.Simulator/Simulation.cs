@@ -1,52 +1,81 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using log4net;
+using Nerdle.Hydra.InfrastructureAbstractions;
 using Nerdle.Hydra.Simulator.Configuration;
 using Nerdle.Hydra.StateManagement;
 
 namespace Nerdle.Hydra.Simulator
 {
-    class Simulation
+    class Simulation : IRunnable
     {
         readonly ICluster<ComponentStub> _cluster;
-        readonly int _iterations;
-        readonly int _parallelism;
-        readonly IRollingWindowConfiguration _config;
+        readonly ISimulationConfiguration _config;
         readonly ILog _log;
 
-        public Simulation(IEnumerable<ComponentStub> components, IRollingWindowConfiguration config, int iterations, int parallelism, ILog log)
+        Simulation(ICluster<ComponentStub> cluster, ISimulationConfiguration config, ILog log)
         {
-            _iterations = iterations;
-            _parallelism = parallelism;
+            _cluster = cluster;
             _config = config;
             _log = log;
+        }
 
-            var failableComponents = components.Select(component =>
+        public static Simulation OfStaticCluster(ISimulationConfiguration config, ILog log)
+        {
+            var components = new IFailable<ComponentStub>[3];
+
+            for (var i = 0; i < components.Length; i++)
+                components[i] = CreateComponent(config, log);
+
+            var cluster = new Cluster<ComponentStub>(components);
+
+            return new Simulation(cluster, config, log);
+        }
+
+        public static Simulation OfDynamicCluster(ISimulationConfiguration config, ILog log)
+        {
+            throw new NotImplementedException();
+
+            //var components = new IFailable<ComponentStub>[3];
+
+            //for (var i = 0; i < components.Length; i++)
+            //    components[i] = CreateComponent(config, log);
+                
+            //var cluster = new DynamicCluster<ComponentStub>(components, new SyncManager(new ReaderWriterLockSlim()));
+            //cluster.ComponentFailed += (sender, exception) =>
+            //{
+            //    var oldComponent = (IFailable<ComponentStub>) sender;
+            //    log.Info($"Component failed, ID: {oldComponent.ComponentId}");
+            //    var newComponent = CreateComponent(config, log);
+            //    log.Info($"Spawned new component, ID: {newComponent.ComponentId}");
+            //    cluster.Replace(oldComponent, newComponent);
+            //    log.Info($"Replacing component in cluster (old component ID: {oldComponent.ComponentId}, new component ID {newComponent.ComponentId})");
+            //};
+
+            //return new Simulation(cluster, config, log);
+        }
+
+        static IFailable<ComponentStub> CreateComponent(ISimulationConfiguration config, ILog defaultLog)
+        {
+            var id = Guid.NewGuid().ToString().Substring(0, 4).ToUpperInvariant();
+            var componentLog = LoggerFactory.CreateLogger(id);
+            var stateManager = new RollingWindowAveragingStateManager(config.RollingWindow.WindowLength, config.RollingWindow.FailureTriggerPercentage, config.RollingWindow.MinimumSampleSize, config.RollingWindow.FailFor);
+            var component = new ComponentStub(id, config.Component.BaseFailureRate, config.Component.OperationDelay, componentLog);
+            var failableComponent = new Failable<ComponentStub>(id, component, stateManager);
+
+            stateManager.StateChanged += (sender, args) =>
             {
-                var stateManager = new RollingWindowAveragingStateManager(_config.WindowLength, _config.FailureTriggerPercentage, _config.MinimumSampleSize, _config.FailFor);
-                stateManager.StateChanged += (sender, args) =>
-                {
-                    component.Reset();
-                    _log.Info($"{args.PreviousState} -> {args.CurrentState}");
-                };
+                component.Reset();
+                defaultLog.Info($"{id} state changed: {args.PreviousState} -> {args.CurrentState}");
+            };
 
-                var failable = new Failable<ComponentStub>(component.ToString(), component, stateManager);
-                failable.Failed += (sender, exception) => _log.Warn($"{((IFailable<ComponentStub>) sender).ComponentId} -> {State.Failed}");
-                failable.Recovered += (sender, exception) => _log.Warn($"{((IFailable<ComponentStub>)sender).ComponentId} -> {State.Working}");
-
-                return failable;
-            })
-            .ToList();
-        
-            _cluster = new Cluster<ComponentStub>(failableComponents);
+            return failableComponent;
         }
 
         public void Run()
         {
-            Parallel.For(0, _iterations, 
-                new ParallelOptions { MaxDegreeOfParallelism = _parallelism },
+            Parallel.For(0, _config.Iterations, new ParallelOptions { MaxDegreeOfParallelism = _config.Parallelism },
                 _ =>
                 {
                     try

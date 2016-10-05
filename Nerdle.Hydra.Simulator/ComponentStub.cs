@@ -12,14 +12,14 @@ namespace Nerdle.Hydra.Simulator
         double _currentFailureRate;
         readonly ILog _log;
 
-        public ComponentStub(string id, double baseFailureRate, TimeSpan operationTime)
+        public ComponentStub(string id, double baseFailureRate, TimeSpan operationTime, ILog log)
         {
             Id = id;
             _baseFailureRate = baseFailureRate;
             _operationTime = operationTime;
+            _log = log;
             _currentFailureRate = _baseFailureRate;
             _random = new Random(id.GetHashCode());
-            _log = LogManager.GetLogger(id);
         }
 
         public string Id { get; }

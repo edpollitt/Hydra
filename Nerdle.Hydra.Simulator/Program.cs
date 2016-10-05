@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Linq;
 using log4net;
 using log4net.Config;
 using Nerdle.Hydra.Simulator.Configuration;
@@ -15,22 +14,25 @@ namespace Nerdle.Hydra.Simulator
             XmlConfigurator.Configure();
 
             var log = LogManager.GetLogger("Default");
-
             var config = Config.Map<ISimulationConfiguration>();
             
-            var components = new [] { "Primary", "Secondary", "Tertiary" }
-                .Select(id => new ComponentStub(id, config.Component.BaseFailureRate, config.Component.OperationDelay))
-                .ToList();
+            log.Info("Beginning simulation...");
+            var simulation = config.DynamicCluster ? 
+                Simulation.OfDynamicCluster(config, log) 
+              : Simulation.OfStaticCluster(config, log);
+            var elapsedTime = Time(() => simulation.Run());
+            log.Info($"Finished {config.Iterations} iterations in {elapsedTime.TotalSeconds} s.");
 
-            var sim = new Simulation(components, config.RollingWindow, config.Iterations, config.Parallelism, log);
+            Console.ReadKey();
+        }
 
+        static TimeSpan Time(Action action)
+        {
             var sw = new Stopwatch();
             sw.Start();
-            sim.Run();
+            action();
             sw.Stop();
-
-            log.Info($"Finished {config.Iterations} iterations in {sw.Elapsed.TotalSeconds} s.");
-            Console.ReadKey();
+            return sw.Elapsed;
         }
     }
 }
