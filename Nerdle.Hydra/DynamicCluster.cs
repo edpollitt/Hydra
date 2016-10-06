@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Nerdle.Hydra.Exceptions;
 using Nerdle.Hydra.InfrastructureAbstractions;
 
 namespace Nerdle.Hydra
@@ -9,54 +10,101 @@ namespace Nerdle.Hydra
     {
         readonly ISyncManager _syncManager;
 
-        public DynamicCluster(IEnumerable<IFailable<TComponent>> components, ISyncManager syncManager) : base(components)
+        public DynamicCluster(IEnumerable<IFailable<TComponent>> components, ISyncManager syncManager)
+            : base(components)
         {
             _syncManager = syncManager;
         }
 
-        public override ClusterResult Execute(Action<TComponent> command)
+        protected override TClusterResult ExecuteInternal<TClusterResult>(Func<IFailable<TComponent>, TClusterResult> operation)
         {
-            return _syncManager.ReadOnly(() => base.Execute(command));
-        }
+            var exceptions = new List<Exception>();
 
-        public override ClusterResult<TResult> Execute<TResult>(Func<TComponent, TResult> query)
-        {
-            return _syncManager.ReadOnly(() => base.Execute(query));
+            // obtain an Enumerator instance in a thread safe manner as we may be trying to modify 
+            // the Components reference elsewhere 
+            using (var enumerator = _syncManager.ReadOnly(() => Components.GetEnumerator()))
+            {
+                while (enumerator.MoveNext())
+                {
+                    if (enumerator.Current.IsAvailable)
+                    {
+                        try
+                        {
+                            return operation(enumerator.Current);
+                        }
+                        catch (Exception e)
+                        {
+                            exceptions.Add(e);
+                        }
+                    }
+                }
+            }
+
+            throw exceptions.Count > 0 ? new ClusterFailureException("There are available components in the cluster, but the request was not successfully processed by any component.", exceptions.Count == 1 ? exceptions.First() : new AggregateException(exceptions)) : new ClusterFailureException("There are no currently available components in the cluster to process the request.");
         }
 
         public void Add(IFailable<TComponent> newComponent, ComponentPriority priority)
         {
-            switch (priority)
+            Register(newComponent);
+
+            EditComponents(list =>
             {
-                case ComponentPriority.First:
-                    _syncManager.Write(() => Components.Insert(0, newComponent));
-                    break;
-                case ComponentPriority.Last:
-                    _syncManager.Write(() => Components.Add(newComponent));
-                    break;
-                default:
-                    throw new InvalidOperationException($"DynamicCluster 'Add' behaviour is undefined for priority '{priority}'");
-            }
+                switch (priority)
+                {
+                    case ComponentPriority.First:
+                        list.Insert(0, newComponent);
+                        break;
+                    case ComponentPriority.Last:
+                        list.Add(newComponent);
+                        break;
+                    default:
+                        throw new InvalidOperationException($"DynamicCluster 'Add' behaviour is undefined for priority '{priority}'");
+                }
+            });
         }
 
         public void Remove(IFailable<TComponent> oldComponent)
         {
-            _syncManager.Write(() => Components.Remove(oldComponent));
+            EditComponents(list =>
+            {
+                list.Remove(oldComponent);
+            });
+
+            Deregister(oldComponent);
         }
 
         public void Replace(IFailable<TComponent> oldComponent, IFailable<TComponent> newComponent)
         {
-            _syncManager.Write(() =>
+            EditComponents(list =>
             {
-                var index = Components.IndexOf(oldComponent);
-                if (index != -1)
-                    Components[index] = newComponent;
+                var index = list.IndexOf(oldComponent);
+
+                if (index == -1)
+                    throw new InvalidOperationException();
+
+                Register(newComponent);
+                list[index] = newComponent;
             });
+
+            Deregister(oldComponent);
         }
 
-        public IEnumerable<string> ComponentList
+        void EditComponents(Action<List<IFailable<TComponent>>> editAction)
         {
-            get { return _syncManager.ReadOnly(() => Components.Select(component => component.ComponentId).ToList()); }
-        } 
+            var clonedComponents = _syncManager.ReadOnly(() => new List<IFailable<TComponent>>(Components));
+            editAction(clonedComponents);
+            _syncManager.Write(() => Components = clonedComponents);
+        }
+
+        void Deregister(IFailable component)
+        {
+            component.Failed -= OnComponentFailed;
+            component.Recovered -= OnComponentRecovered;
+        }
+
+        public override IEnumerable<string> ComponentIds
+        {
+            get { return _syncManager.ReadOnly(() => base.ComponentIds); }
+        }
     }
 }

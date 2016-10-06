@@ -22,7 +22,7 @@ namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests
         public void The_component_is_removed(string componentToRemove, string[] remainingComponents)
         {
             Sut.Remove(Components[componentToRemove].Object);
-            Sut.ComponentList.Should().Equal(remainingComponents);
+            Sut.ComponentIds.Should().Equal(remainingComponents);
         }
 
         [Test]

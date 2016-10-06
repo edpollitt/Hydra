@@ -15,11 +15,12 @@ namespace Nerdle.Hydra.Simulator
 
             var log = LogManager.GetLogger("Default");
             var config = Config.Map<ISimulationConfiguration>();
-            
-            log.Info("Beginning simulation...");
+
             var simulation = config.DynamicCluster ? 
                 Simulation.OfDynamicCluster(config, log) 
               : Simulation.OfStaticCluster(config, log);
+        
+            log.Info("Beginning simulation...");
             var elapsedTime = Time(() => simulation.Run());
             log.Info($"Finished {config.Iterations} iterations in {elapsedTime.TotalSeconds} s.");
 

@@ -26,7 +26,7 @@ namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests
             var newComponent = new Mock<IFailable<IList>>();
             newComponent.Setup(component => component.ComponentId).Returns(newComponentId);
             Sut.Replace(Components[oldComponentId].Object, newComponent.Object);
-            Sut.ComponentList.Should().Equal(resultingComponentIds);
+            Sut.ComponentIds.Should().Equal(resultingComponentIds);
         }
 
         [Test]

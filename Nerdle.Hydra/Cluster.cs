@@ -7,7 +7,7 @@ namespace Nerdle.Hydra
 {
     public class Cluster<TComponent> : ICluster<TComponent>
     {
-        protected readonly List<IFailable<TComponent>> Components;
+        protected IReadOnlyCollection<IFailable<TComponent>> Components;
 
         public event EventHandler<Exception> ComponentFailed;
         public event EventHandler ComponentRecovered;
@@ -16,11 +16,8 @@ namespace Nerdle.Hydra
         {
             Components = components.ToList();
 
-            Components.ForEach(component =>
-            {
-                component.Failed += OnComponentFailed;
-                component.Recovered += OnComponentRecovered;
-            });
+            foreach (var component in Components)
+                Register(component);
         }
 
         public virtual ClusterResult Execute(Action<TComponent> command)
@@ -41,7 +38,7 @@ namespace Nerdle.Hydra
             });
         }
 
-        TClusterResult ExecuteInternal<TClusterResult>(Func<IFailable<TComponent>, TClusterResult> operation) where TClusterResult : ClusterResult
+        protected virtual TClusterResult ExecuteInternal<TClusterResult>(Func<IFailable<TComponent>, TClusterResult> operation) where TClusterResult : ClusterResult
         {
             var exceptions = new List<Exception>();
 
@@ -61,14 +58,25 @@ namespace Nerdle.Hydra
             throw exceptions.Count > 0 ? new ClusterFailureException("There are available components in the cluster, but the request was not successfully processed by any component.", exceptions.Count == 1 ? exceptions.First() : new AggregateException(exceptions)) : new ClusterFailureException("There are no currently available components in the cluster to process the request.");
         }
 
-        void OnComponentFailed(object sender, Exception exception)
+        protected void OnComponentFailed(object sender, Exception exception)
         {
             ComponentFailed?.Invoke(sender, exception);
         }
 
-        void OnComponentRecovered(object sender, EventArgs eventArgs)
+        protected void OnComponentRecovered(object sender, EventArgs eventArgs)
         {
             ComponentRecovered?.Invoke(sender, eventArgs);
+        }
+
+        protected void Register(IFailable component)
+        {
+            component.Failed += OnComponentFailed;
+            component.Recovered += OnComponentRecovered;
+        }
+
+        public virtual IEnumerable<string> ComponentIds
+        {
+            get { return Components.Select(component => component.ComponentId).ToList(); }
         }
     }
 }

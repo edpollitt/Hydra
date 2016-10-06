@@ -24,7 +24,7 @@ namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests
             var newComponent = new Mock<IFailable<Queue>>();
             newComponent.Setup(component => component.ComponentId).Returns("foo");
             Sut.Add(newComponent.Object, ComponentPriority.First);
-            Sut.ComponentList.Should().Equal("foo", Primary, Secondary, Tertiary);
+            Sut.ComponentIds.Should().Equal("foo", Primary, Secondary, Tertiary);
         }
 
         [Test]
@@ -33,7 +33,7 @@ namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests
             var newComponent = new Mock<IFailable<Queue>>();
             newComponent.Setup(component => component.ComponentId).Returns("bar");
             Sut.Add(newComponent.Object, ComponentPriority.Last);
-            Sut.ComponentList.Should().Equal(Primary, Secondary, Tertiary, "bar");
+            Sut.ComponentIds.Should().Equal(Primary, Secondary, Tertiary, "bar");
         }
 
         [Test]

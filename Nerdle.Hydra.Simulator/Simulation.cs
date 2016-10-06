@@ -14,6 +14,8 @@ namespace Nerdle.Hydra.Simulator
         readonly ISimulationConfiguration _config;
         readonly ILog _log;
 
+        static int _componentId;
+
         Simulation(ICluster<ComponentStub> cluster, ISimulationConfiguration config, ILog log)
         {
             _cluster = cluster;
@@ -30,35 +32,38 @@ namespace Nerdle.Hydra.Simulator
 
             var cluster = new Cluster<ComponentStub>(components);
 
+            log.Info($"Generated cluster: {string.Join(", ", cluster.ComponentIds)}");
+
             return new Simulation(cluster, config, log);
         }
 
         public static Simulation OfDynamicCluster(ISimulationConfiguration config, ILog log)
         {
-            throw new NotImplementedException();
+            var components = new IFailable<ComponentStub>[3];
 
-            //var components = new IFailable<ComponentStub>[3];
+            for (var i = 0; i < components.Length; i++)
+                components[i] = CreateComponent(config, log);
 
-            //for (var i = 0; i < components.Length; i++)
-            //    components[i] = CreateComponent(config, log);
-                
-            //var cluster = new DynamicCluster<ComponentStub>(components, new SyncManager(new ReaderWriterLockSlim()));
-            //cluster.ComponentFailed += (sender, exception) =>
-            //{
-            //    var oldComponent = (IFailable<ComponentStub>) sender;
-            //    log.Info($"Component failed, ID: {oldComponent.ComponentId}");
-            //    var newComponent = CreateComponent(config, log);
-            //    log.Info($"Spawned new component, ID: {newComponent.ComponentId}");
-            //    cluster.Replace(oldComponent, newComponent);
-            //    log.Info($"Replacing component in cluster (old component ID: {oldComponent.ComponentId}, new component ID {newComponent.ComponentId})");
-            //};
+            var cluster = new DynamicCluster<ComponentStub>(components, new SyncManager(new ReaderWriterLockSlim()));
+            cluster.ComponentFailed += (sender, exception) =>
+            {
+                var oldComponent = (IFailable<ComponentStub>)sender;
+                log.Info($"Component failed, ID: {oldComponent.ComponentId}");
+                var newComponent = CreateComponent(config, log);
+                log.Info($"Spawned new component, ID: {newComponent.ComponentId}");
+                cluster.Replace(oldComponent, newComponent);
+                log.Info($"Replaced cluster component {oldComponent.ComponentId} with component {newComponent.ComponentId}");
+                log.Info($"Current cluster: {string.Join(", ", cluster.ComponentIds)}");
+            };
 
-            //return new Simulation(cluster, config, log);
+            log.Info($"Generated cluster: {string.Join(", ", cluster.ComponentIds)}");
+
+            return new Simulation(cluster, config, log);
         }
 
         static IFailable<ComponentStub> CreateComponent(ISimulationConfiguration config, ILog defaultLog)
         {
-            var id = Guid.NewGuid().ToString().Substring(0, 4).ToUpperInvariant();
+            var id = Interlocked.Increment(ref _componentId).ToString("#0000");
             var componentLog = LoggerFactory.CreateLogger(id);
             var stateManager = new RollingWindowAveragingStateManager(config.RollingWindow.WindowLength, config.RollingWindow.FailureTriggerPercentage, config.RollingWindow.MinimumSampleSize, config.RollingWindow.FailFor);
             var component = new ComponentStub(id, config.Component.BaseFailureRate, config.Component.OperationDelay, componentLog);
