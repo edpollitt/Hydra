@@ -80,8 +80,7 @@ namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests
             Action executing = () => Sut.Execute(_theQuery);
 
             executing.ShouldThrow<ClusterFailureException>()
-                .WithMessage(
-                    "There are available components in the cluster, but the request was not successfully processed by any component.")
+                .WithMessage("There are available components in the cluster, but the request was not successfully processed by any component.")
                 .And.InnerException.Should().BeOfType<AggregateException>().Which.InnerExceptions.Count.Should().Be(3);
         }
 

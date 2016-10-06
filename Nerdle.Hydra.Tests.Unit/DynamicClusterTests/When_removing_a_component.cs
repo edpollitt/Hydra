@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Nerdle.Hydra.Exceptions;
@@ -32,6 +33,26 @@ namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests
             // enter the lock on a different thread
             Task.Run(() => RwLock.EnterWriteLock()).Wait();
             removing.ShouldThrow<LockEntryTimeoutException>();
+        }
+
+        [Test]
+        public void The_removed_components_failed_event_is_deregistered()
+        {
+            var eventFired = false;
+            Sut.ComponentFailed += (sender, exception) => eventFired = true;
+            Sut.Remove(Components[Primary].Object);
+            Components[Primary].Raise(component => component.Failed += null, Components[Primary], new InvalidDataException());
+            eventFired.Should().BeFalse();
+        }
+
+        [Test]
+        public void The_removed_components_recovered_event_is_deregistered()
+        {
+            var eventFired = false;
+            Sut.ComponentRecovered += (sender, exception) => eventFired = true;
+            Sut.Remove(Components[Secondary].Object);
+            Components[Secondary].Raise(component => component.Recovered += null, Components[Secondary], EventArgs.Empty);
+            eventFired.Should().BeFalse();
         }
     }
 }

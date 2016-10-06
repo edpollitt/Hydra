@@ -44,5 +44,31 @@ namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests
             Task.Run(() => RwLock.EnterWriteLock()).Wait();
             adding.ShouldThrow<LockEntryTimeoutException>();
         }
+
+        [Test]
+        public void The_added_components_failed_event_is_registered()
+        {
+            var newComponent = new Mock<IFailable<Queue>>();
+            Sut.Add(newComponent.Object, ComponentPriority.First);
+            object eventSource = null;
+            Sut.ComponentFailed += (sender, exception) => eventSource = sender;
+
+            newComponent.Raise(component => component.Failed += null, newComponent, new FormatException());
+
+            eventSource.Should().Be(newComponent);
+        }
+
+        [Test]
+        public void The_added_components_recovered_event_is_registered()
+        {
+            var newComponent = new Mock<IFailable<Queue>>();
+            Sut.Add(newComponent.Object, ComponentPriority.Last);
+            object eventSource = null;
+            Sut.ComponentRecovered += (sender, exception) => eventSource = sender;
+
+            newComponent.Raise(component => component.Recovered += null, newComponent, EventArgs.Empty);
+
+            eventSource.Should().Be(newComponent);
+        }
     }
 }

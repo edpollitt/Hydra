@@ -61,7 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClusterTests\When_subscribed_to_the_component_recovered_event.cs" />
-    <Compile Include="ClusterTests\When_subscribed_to_the_failed_event.cs" />
+    <Compile Include="ClusterTests\When_subscribed_to_the_component_failed_event.cs" />
     <Compile Include="DynamicClusterTests\When_adding_a_component.cs" />
     <Compile Include="DynamicClusterTests\When_executing_a_command.cs" />
     <Compile Include="DynamicClusterTests\When_executing_a_query.cs" />
