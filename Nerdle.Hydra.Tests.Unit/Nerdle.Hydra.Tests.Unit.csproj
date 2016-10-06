@@ -60,6 +60,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClusterTests\When_subscribed_to_the_component_recovered_event.cs" />
+    <Compile Include="ClusterTests\When_subscribed_to_the_failed_event.cs" />
     <Compile Include="DynamicClusterTests\When_adding_a_component.cs" />
     <Compile Include="DynamicClusterTests\When_executing_a_command.cs" />
     <Compile Include="DynamicClusterTests\When_executing_a_query.cs" />
@@ -73,8 +75,9 @@
     <Compile Include="FailableComponentTests\When_executing_a_command.cs" />
     <Compile Include="FailableComponentTests\When_executing_a_query.cs" />
     <Compile Include="FailableComponentTests\When_instantiating_a_failable_component.cs" />
-    <Compile Include="FailableComponentTests\When_subscribing_to_events.cs" />
-    <Compile Include="FailableComponentTests\_against_a_failable_component.cs" />
+    <Compile Include="FailableComponentTests\When_subscribed_to_the_failed_event.cs" />
+    <Compile Include="FailableComponentTests\When_subscribed_to_the_recovered_event.cs" />
+    <Compile Include="FailableComponentTests\_on_a_failable_component.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StateManagement\FailureRatioWithMinimumSampleSizeConditionTests\When_evaluating_the_condition.cs" />
     <Compile Include="StateManagement\RollingWindowAveragingStateManagerTests\Helpers\CountingSyncManagerProxy.cs" />

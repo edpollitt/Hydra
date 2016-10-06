@@ -7,7 +7,7 @@ using NUnit.Framework;
 namespace Nerdle.Hydra.Tests.Unit.FailableComponentTests
 {
     [TestFixture]
-    class When_executing_a_query : _against_a_failable_component
+    class When_executing_a_query : _on_a_failable_component
     {
         [Test]
         public void The_query_is_executed_against_the_wrapped_component()

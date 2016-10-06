@@ -6,7 +6,7 @@ using NUnit.Framework;
 namespace Nerdle.Hydra.Tests.Unit.FailableComponentTests
 {
     [TestFixture]
-    class When_assessing_availability : _against_a_failable_component
+    class When_assessing_availability : _on_a_failable_component
     {
         [TestCase(State.Unknown, false)]
         [TestCase(State.Failed, false)]

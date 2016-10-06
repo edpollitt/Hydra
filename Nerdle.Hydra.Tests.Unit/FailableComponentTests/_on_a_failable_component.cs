@@ -5,14 +5,14 @@ using NUnit.Framework;
 
 namespace Nerdle.Hydra.Tests.Unit.FailableComponentTests
 {
-    abstract class _against_a_failable_component
+    abstract class _on_a_failable_component
     {
-        protected IFailable<IList> Sut;
+        protected Failable<IList> Sut;
         protected IList WrappedComponent;
         protected Mock<IStateManager> StateManager;
 
         [SetUp]
-        public void BeforeEach()
+        public virtual void BeforeEach()
         {
             WrappedComponent = new ArrayList();
             StateManager = new Mock<IStateManager>();

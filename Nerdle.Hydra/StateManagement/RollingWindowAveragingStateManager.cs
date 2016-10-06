@@ -16,7 +16,7 @@ namespace Nerdle.Hydra.StateManagement
         State _state;
         DateTime? _failedUntil;
 
-        public event StateChangedHandler StateChanged;
+        public event EventHandler<StateChangedArgs> StateChanged;
 
         public RollingWindowAveragingStateManager(TimeSpan windowLength, double failureTriggerPercentage, int minimumSampleSize, TimeSpan failFor, TimeSpan? synchLockTimeout = null) 
             : this(new RollingWindow(windowLength), 

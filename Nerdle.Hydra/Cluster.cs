@@ -20,7 +20,7 @@ namespace Nerdle.Hydra
                 Register(component);
         }
 
-        public virtual ClusterResult Execute(Action<TComponent> command)
+        public ClusterResult Execute(Action<TComponent> command)
         {
             return ExecuteInternal(component =>
             {
@@ -29,7 +29,7 @@ namespace Nerdle.Hydra
             });
         }
 
-        public virtual ClusterResult<TResult> Execute<TResult>(Func<TComponent, TResult> query)
+        public ClusterResult<TResult> Execute<TResult>(Func<TComponent, TResult> query)
         {
             return ExecuteInternal(component =>
             {
