@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
 using Nerdle.Hydra.InfrastructureAbstractions;
 
 namespace Nerdle.Hydra.StateManagement
@@ -36,13 +35,10 @@ namespace Nerdle.Hydra.StateManagement
             Trim(now);
         }
 
-        public int Count
+        public int TrimAndCount()
         {
-            get
-            {
-                Trim(_clock.UtcNow);
-                return _queue.Count;
-            }
+            Trim(_clock.UtcNow);
+            return _queue.Count;
         }
 
         public void Reset()

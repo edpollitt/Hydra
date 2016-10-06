@@ -36,7 +36,7 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowTests
                 _queue.Enqueue(now);
             }
 
-            _sut.Count.Should().Be(10);
+            _sut.TrimAndCount().Should().Be(10);
         }
 
         [Test]
@@ -58,7 +58,7 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowTests
                 _queue.Enqueue(time);
             }
 
-            _sut.Count.Should().Be(2);
+            _sut.TrimAndCount().Should().Be(2);
             _queue.Should().Equal(times.SkipWhile(time => time < now - _windowLength));
         }
     }

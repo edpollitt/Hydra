@@ -3,7 +3,7 @@
     interface IRollingWindow
     {
         void Mark();
-        int Count { get; }
+        int TrimAndCount();
         void Reset();
     }
 }

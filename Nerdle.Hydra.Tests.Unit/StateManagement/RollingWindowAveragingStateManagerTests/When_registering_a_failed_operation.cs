@@ -75,8 +75,8 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
         [Test]
         public void The_failure_condition_is_evaluated_after_the_window_is_marked()
         {
-            SuccessWindow.Setup(window => window.Count).Returns(99);
-            FailureWindow.Setup(window => window.Count).Returns(6);
+            SuccessWindow.Setup(window => window.TrimAndCount()).Returns(99);
+            FailureWindow.Setup(window => window.TrimAndCount()).Returns(6);
             RollingWindowAveragingStateManagerWithState(State.Working).RegisterFailure(new Exception());
             FailureCondition.Verify(condition => condition.IsMet(99, 6), Times.Once);
         }

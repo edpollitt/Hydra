@@ -71,17 +71,20 @@ namespace Nerdle.Hydra.StateManagement
                         return;
 
                     case State.Working:
-                        _sync.Write(() => _failureWindow.Mark());
-
-                        if (_failureCondition.IsMet(_successWindow.Count, _failureWindow.Count))
+                        bool failed = false;
+                        _sync.Write(() =>
                         {
-                            _sync.Write(() =>
+                            _failureWindow.Mark();
+                            failed = _failureCondition.IsMet(_successWindow.TrimAndCount(), _failureWindow.TrimAndCount());
+                            if (failed)
                             {
                                 _successWindow.Reset();
                                 _failureWindow.Reset();
-                            });
+                            }
+                        });
+                        if (failed)
                             UpdateStateTo(State.Failed, exception);
-                        }
+
                         break;
                 }
             });
