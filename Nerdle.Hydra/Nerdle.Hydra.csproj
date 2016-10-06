@@ -45,8 +45,10 @@
     <Compile Include="Cluster.cs" />
     <Compile Include="ComponentPriority.cs" />
     <Compile Include="DynamicCluster.cs" />
+    <Compile Include="Exceptions\ClusterException.cs" />
     <Compile Include="Exceptions\ClusterFailureException.cs" />
     <Compile Include="ClusterResult.cs" />
+    <Compile Include="Exceptions\ClusterModificationException.cs" />
     <Compile Include="Exceptions\LockEntryTimeoutException.cs" />
     <Compile Include="Failable.cs" />
     <Compile Include="IDynamicCluster.cs" />

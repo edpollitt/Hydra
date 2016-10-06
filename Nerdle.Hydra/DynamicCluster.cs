@@ -58,7 +58,7 @@ namespace Nerdle.Hydra
                         list.Add(newComponent);
                         break;
                     default:
-                        throw new InvalidOperationException($"DynamicCluster 'Add' behaviour is undefined for priority '{priority}'");
+                        throw new ClusterModificationException($"DynamicCluster 'Add' behaviour is undefined for priority '{priority}'. Component {newComponent.ComponentId} has not been added to cluster.");
                 }
             });
         }
@@ -80,7 +80,7 @@ namespace Nerdle.Hydra
                 var index = list.IndexOf(oldComponent);
 
                 if (index == -1)
-                    throw new InvalidOperationException();
+                    throw new ClusterModificationException($"Component {oldComponent.ComponentId} not found in cluster. New component {newComponent.ComponentId} has not been added to cluster.");
 
                 Register(newComponent);
                 list[index] = newComponent;

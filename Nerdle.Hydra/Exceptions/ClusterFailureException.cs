@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Nerdle.Hydra.Exceptions
 {
     [Serializable]
-    public class ClusterFailureException : Exception
+    public class ClusterFailureException : ClusterException
     {
         public ClusterFailureException()
         {
