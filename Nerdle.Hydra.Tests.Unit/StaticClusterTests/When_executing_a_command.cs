@@ -1,16 +1,17 @@
-using System;
+﻿using System;
 using System.Collections;
 using FluentAssertions;
 using Moq;
 using Nerdle.Hydra.Exceptions;
+using Nerdle.Hydra.Tests.Unit.TestHelpers;
 using NUnit.Framework;
 
-namespace Nerdle.Hydra.Tests.Unit.ClusterTests
+namespace Nerdle.Hydra.Tests.Unit.StaticClusterTests
 {
     [TestFixture]
-    class When_executing_a_query : _on_a_cluster_of<Queue>
+    class When_executing_a_command : _on_a_static_cluster_of<ISomeService>
     {
-        readonly Func<Queue, object> _theQuery = service => service.Peek();
+        readonly Action<ISomeService> _theCommand = stack => stack.SomeCommand();
 
         [TestCase(true, true, true, Primary)]
         [TestCase(true, false, false, Primary)]
@@ -22,26 +23,13 @@ namespace Nerdle.Hydra.Tests.Unit.ClusterTests
             Components[Primary].Setup(component => component.IsAvailable).Returns(primaryAvailability);
             Components[Secondary].Setup(component => component.IsAvailable).Returns(secondaryAvailability);
             Components[Tertiary].Setup(component => component.IsAvailable).Returns(tertiaryAvailability);
-
-            var result = Sut.Execute(_theQuery);
+            
+            var result = Sut.Execute(_theCommand);
 
             foreach (var component in Components)
-                component.Value.Verify(c => c.Execute(_theQuery), component.Key == expectedHandler ? Times.Once() : Times.Never());
+                component.Value.Verify(c => c.Execute(_theCommand), component.Key == expectedHandler ? Times.Once() : Times.Never());
 
             result.HandledByComponentId.Should().Be(expectedHandler);
-        }
-
-        [TestCase(1)]
-        [TestCase(true)]
-        [TestCase("foo")]
-        public void The_query_result_is_returned(object queryResult)
-        {
-            Components[Primary].Setup(component => component.IsAvailable).Returns(true);
-            Components[Primary].Setup(component => component.Execute(_theQuery)).Returns(queryResult);
-
-            var actual = Sut.Execute(_theQuery);
-
-            actual.Result.Should().Be(queryResult);
         }
 
         [Test]
@@ -50,7 +38,7 @@ namespace Nerdle.Hydra.Tests.Unit.ClusterTests
             foreach (var component in Components)
                 component.Value.Setup(c => c.IsAvailable).Returns(false);
 
-            Action executing = () => Sut.Execute(_theQuery);
+            Action executing = () => Sut.Execute(_theCommand);
 
             executing.ShouldThrow<ClusterFailureException>().WithMessage("There are no currently available components in the cluster to process the request.");
         }
@@ -61,13 +49,13 @@ namespace Nerdle.Hydra.Tests.Unit.ClusterTests
             foreach (var component in Components)
             {
                 component.Value.Setup(c => c.IsAvailable).Returns(true);
-                component.Value.Setup(c => c.Execute(_theQuery)).Throws<AccessViolationException>();
+                component.Value.Setup(c => c.Execute(_theCommand)).Throws<InvalidOperationException>();
             }
 
-            Action executing = () => Sut.Execute(_theQuery);
+            Action executing = () => Sut.Execute(_theCommand);
 
             executing.ShouldThrow<ClusterFailureException>().WithMessage("There are available components in the cluster, but the request was not successfully processed by any component.")
-                .And.InnerException.Should().BeOfType<AggregateException>().Which.InnerExceptions.Count.Should().Be(3);
+                .And.InnerException.Should().BeOfType<AggregateException>().Which.InnerExceptions.Should().HaveCount(3);
         }
 
         [Test]
@@ -76,7 +64,7 @@ namespace Nerdle.Hydra.Tests.Unit.ClusterTests
             Components[Primary].Setup(component => component.IsAvailable).Returns(false);
             Components[Secondary].Setup(component => component.IsAvailable).Returns(true);
 
-            Sut.Execute(_theQuery);
+            Sut.Execute(_theCommand);
 
             foreach (var component in Components)
                 component.Value.Verify(c => c.IsAvailable, component.Key == Tertiary ? Times.Never() : Times.Once());

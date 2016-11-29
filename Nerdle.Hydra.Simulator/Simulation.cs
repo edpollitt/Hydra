@@ -30,7 +30,7 @@ namespace Nerdle.Hydra.Simulator
             for (var i = 0; i < components.Length; i++)
                 components[i] = CreateComponent(config, log);
 
-            var cluster = new Cluster<ComponentStub>(components);
+            var cluster = new StaticCluster<ComponentStub>(components);
 
             log.Info($"Generated cluster: {string.Join(", ", cluster.ComponentIds)}");
 

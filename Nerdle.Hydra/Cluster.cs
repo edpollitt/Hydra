@@ -1,18 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Nerdle.Hydra.Exceptions;
+using System.Threading.Tasks;
 
 namespace Nerdle.Hydra
 {
-    public class Cluster<TComponent> : ICluster<TComponent>
+    public abstract class Cluster<TComponent> : ICluster<TComponent>
     {
-        protected IReadOnlyCollection<IFailable<TComponent>> Components;
+        protected IList<IFailable<TComponent>> Components;
 
         public event EventHandler<Exception> ComponentFailed;
         public event EventHandler ComponentRecovered;
 
-        public Cluster(IEnumerable<IFailable<TComponent>> components)
+        protected Cluster(IEnumerable<IFailable<TComponent>> components)
         {
             Components = components.ToList();
 
@@ -38,24 +38,34 @@ namespace Nerdle.Hydra
             });
         }
 
-        protected virtual TClusterResult ExecuteInternal<TClusterResult>(Func<IFailable<TComponent>, TClusterResult> operation) where TClusterResult : ClusterResult
+        public async Task<ClusterResult> ExecuteAsync(Func<TComponent, Task> command)
         {
-            var exceptions = new List<Exception>();
-
-            // avoid eagerly enumerating components, as evaluating availability may be expensive (depending on availability heuristic in use)
-            foreach (var component in Components.Where(c => c.IsAvailable))
+            return await ExecuteInternalAsync(async component =>
             {
-                try
-                {
-                    return operation(component);
-                }
-                catch (Exception e)
-                {
-                    exceptions.Add(e);
-                }
-            }
+                await component.ExecuteAsync(command);
+                return new ClusterResult(component.ComponentId);
+            });
+        }
 
-            throw exceptions.Count > 0 ? new ClusterFailureException("There are available components in the cluster, but the request was not successfully processed by any component.", exceptions.Count == 1 ? exceptions.First() : new AggregateException(exceptions)) : new ClusterFailureException("There are no currently available components in the cluster to process the request.");
+        public async Task<ClusterResult<TResult>> ExecuteAsync<TResult>(Func<TComponent, Task<TResult>> query)
+        {
+            return await ExecuteInternalAsync(async component =>
+            {
+                var queryResult = await component.ExecuteAsync(query);
+                return new ClusterResult<TResult>(component.ComponentId, queryResult);
+            });
+        }
+
+        protected abstract TClusterResult ExecuteInternal<TClusterResult>(
+            Func<IFailable<TComponent>, TClusterResult> operation) where TClusterResult : ClusterResult;
+
+        protected abstract Task<TClusterResult> ExecuteInternalAsync<TClusterResult>(
+            Func<IFailable<TComponent>, Task<TClusterResult>> operation) where TClusterResult : ClusterResult;
+        
+        protected void Register(IFailable component)
+        {
+            component.Failed += OnComponentFailed;
+            component.Recovered += OnComponentRecovered;
         }
 
         protected void OnComponentFailed(object sender, Exception exception)
@@ -66,12 +76,6 @@ namespace Nerdle.Hydra
         protected void OnComponentRecovered(object sender, EventArgs eventArgs)
         {
             ComponentRecovered?.Invoke(sender, eventArgs);
-        }
-
-        protected void Register(IFailable component)
-        {
-            component.Failed += OnComponentFailed;
-            component.Recovered += OnComponentRecovered;
         }
 
         public virtual IEnumerable<string> ComponentIds

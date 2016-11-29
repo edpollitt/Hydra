@@ -3,9 +3,9 @@ using System.Linq;
 using Moq;
 using NUnit.Framework;
 
-namespace Nerdle.Hydra.Tests.Unit.ClusterTests
+namespace Nerdle.Hydra.Tests.Unit.StaticClusterTests
 {
-    abstract class _on_a_cluster_of<T>
+    abstract class _on_a_static_cluster_of<T>
     {
         protected const string Primary = "primary";
         protected const string Secondary = "secondary";
@@ -27,7 +27,7 @@ namespace Nerdle.Hydra.Tests.Unit.ClusterTests
                 })
                 .ToDictionary(component => component.Object.ComponentId, component => component);
 
-            Sut = new Cluster<T>(Components.Values.Select(mock => mock.Object));
+            Sut = new StaticCluster<T>(Components.Values.Select(mock => mock.Object));
         }
     }
 }

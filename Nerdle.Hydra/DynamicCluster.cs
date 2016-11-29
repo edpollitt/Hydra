@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Nerdle.Hydra.Exceptions;
 using Nerdle.Hydra.InfrastructureAbstractions;
 
@@ -41,6 +42,11 @@ namespace Nerdle.Hydra
             }
 
             throw exceptions.Count > 0 ? new ClusterFailureException("There are available components in the cluster, but the request was not successfully processed by any component.", exceptions.Count == 1 ? exceptions.First() : new AggregateException(exceptions)) : new ClusterFailureException("There are no currently available components in the cluster to process the request.");
+        }
+
+        protected override Task<TClusterResult> ExecuteInternalAsync<TClusterResult>(Func<IFailable<TComponent>, Task<TClusterResult>> operation)
+        {
+            throw new NotImplementedException();
         }
 
         public void Add(IFailable<TComponent> newComponent, ComponentPriority priority)

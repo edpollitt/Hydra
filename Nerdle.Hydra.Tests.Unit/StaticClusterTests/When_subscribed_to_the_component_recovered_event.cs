@@ -2,10 +2,10 @@ using System;
 using FluentAssertions;
 using NUnit.Framework;
 
-namespace Nerdle.Hydra.Tests.Unit.ClusterTests
+namespace Nerdle.Hydra.Tests.Unit.StaticClusterTests
 {
     [TestFixture]
-    class When_subscribed_to_the_component_recovered_event : _on_a_cluster_of<int>
+    class When_subscribed_to_the_component_recovered_event : _on_a_static_cluster_of<int>
     {
         [Test]
         public void The_event_fires_each_time_a_component_recovers()

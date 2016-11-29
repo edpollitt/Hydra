@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Runtime.Serialization;
 using FluentAssertions;
+using Nerdle.Hydra.Tests.Unit.TestHelpers;
 using NUnit.Framework;
 
-namespace Nerdle.Hydra.Tests.Unit.ClusterTests
+namespace Nerdle.Hydra.Tests.Unit.StaticClusterTests
 {
     [TestFixture]
-    class When_subscribed_to_the_component_failed_event : _on_a_cluster_of<int>
+    class When_subscribed_to_the_component_failed_event : _on_a_static_cluster_of<ISomeService>
     {
         [Test]
         public void The_event_fires_each_time_a_component_fails()

@@ -1,25 +1,17 @@
-﻿using System;
-using Moq;
-using NUnit.Framework;
+using System;
+using System.Collections;
 using FluentAssertions;
+using Moq;
 using Nerdle.Hydra.Exceptions;
+using Nerdle.Hydra.Tests.Unit.TestHelpers;
+using NUnit.Framework;
 
-namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests
+namespace Nerdle.Hydra.Tests.Unit.StaticClusterTests
 {
     [TestFixture]
-    class When_executing_a_command : _on_a_dynamic_cluster_of<IDisposable>
+    class When_executing_a_query : _on_a_static_cluster_of<ISomeService>
     {
-        readonly Action<IDisposable> _theCommand = disposable => disposable.Dispose();
-
-        [Test]
-        public void A_read_lock_is_obtained()
-        {
-            foreach (var component in Components)
-                component.Value.Setup(c => c.IsAvailable).Returns(true);
-
-            Sut.Execute(_theCommand);
-            SyncManagerProxy.ReadOnlyLocksTaken.Should().Be(1);
-        }
+        readonly Func<ISomeService, object> _theQuery = service => service.SomeQuery<object>();
 
         [TestCase(true, true, true, Primary)]
         [TestCase(true, false, false, Primary)]
@@ -31,13 +23,26 @@ namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests
             Components[Primary].Setup(component => component.IsAvailable).Returns(primaryAvailability);
             Components[Secondary].Setup(component => component.IsAvailable).Returns(secondaryAvailability);
             Components[Tertiary].Setup(component => component.IsAvailable).Returns(tertiaryAvailability);
-            
-            var result = Sut.Execute(_theCommand);
+
+            var result = Sut.Execute(_theQuery);
 
             foreach (var component in Components)
-                component.Value.Verify(c => c.Execute(_theCommand), component.Key == expectedHandler ? Times.Once() : Times.Never());
+                component.Value.Verify(c => c.Execute(_theQuery), component.Key == expectedHandler ? Times.Once() : Times.Never());
 
             result.HandledByComponentId.Should().Be(expectedHandler);
+        }
+
+        [TestCase(1)]
+        [TestCase(true)]
+        [TestCase("foo")]
+        public void The_query_result_is_returned(object queryResult)
+        {
+            Components[Primary].Setup(component => component.IsAvailable).Returns(true);
+            Components[Primary].Setup(component => component.Execute(_theQuery)).Returns(queryResult);
+
+            var actual = Sut.Execute(_theQuery);
+
+            actual.Result.Should().Be(queryResult);
         }
 
         [Test]
@@ -46,7 +51,7 @@ namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests
             foreach (var component in Components)
                 component.Value.Setup(c => c.IsAvailable).Returns(false);
 
-            Action executing = () => Sut.Execute(_theCommand);
+            Action executing = () => Sut.Execute(_theQuery);
 
             executing.ShouldThrow<ClusterFailureException>().WithMessage("There are no currently available components in the cluster to process the request.");
         }
@@ -57,10 +62,10 @@ namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests
             foreach (var component in Components)
             {
                 component.Value.Setup(c => c.IsAvailable).Returns(true);
-                component.Value.Setup(c => c.Execute(_theCommand)).Throws<InvalidOperationException>();
+                component.Value.Setup(c => c.Execute(_theQuery)).Throws<AccessViolationException>();
             }
 
-            Action executing = () => Sut.Execute(_theCommand);
+            Action executing = () => Sut.Execute(_theQuery);
 
             executing.ShouldThrow<ClusterFailureException>().WithMessage("There are available components in the cluster, but the request was not successfully processed by any component.")
                 .And.InnerException.Should().BeOfType<AggregateException>().Which.InnerExceptions.Should().HaveCount(3);
@@ -72,7 +77,7 @@ namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests
             Components[Primary].Setup(component => component.IsAvailable).Returns(false);
             Components[Secondary].Setup(component => component.IsAvailable).Returns(true);
 
-            Sut.Execute(_theCommand);
+            Sut.Execute(_theQuery);
 
             foreach (var component in Components)
                 component.Value.Verify(c => c.IsAvailable, component.Key == Tertiary ? Times.Never() : Times.Once());

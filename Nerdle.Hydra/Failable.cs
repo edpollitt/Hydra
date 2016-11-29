@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Nerdle.Hydra.StateManagement;
 
 namespace Nerdle.Hydra
@@ -48,6 +49,36 @@ namespace Nerdle.Hydra
             try
             {
                 result = query(_component);
+            }
+            catch (Exception ex)
+            {
+                _stateManager.RegisterFailure(ex);
+                throw;
+            }
+            _stateManager.RegisterSuccess();
+            return result;
+        }
+
+        public async Task ExecuteAsync(Func<TComponent, Task> command)
+        {
+            try
+            {
+                await command(_component);
+            }
+            catch (Exception ex)
+            {
+                _stateManager.RegisterFailure(ex);
+                throw;
+            }
+            _stateManager.RegisterSuccess();
+        }
+
+        public async Task<TResult> ExecuteAsync<TResult>(Func<TComponent, Task<TResult>> query)
+        {
+            TResult result;
+            try
+            {
+                result = await query(_component);
             }
             catch (Exception ex)
             {

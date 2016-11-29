@@ -50,6 +50,7 @@
     <Compile Include="ClusterResult.cs" />
     <Compile Include="Exceptions\ClusterModificationException.cs" />
     <Compile Include="Exceptions\LockEntryTimeoutException.cs" />
+    <Compile Include="Extensions\CollectionExtensions.cs" />
     <Compile Include="Failable.cs" />
     <Compile Include="IDynamicCluster.cs" />
     <Compile Include="InfrastructureAbstractions\IClock.cs" />
@@ -68,6 +69,7 @@
     <Compile Include="StateManagement\StateChangedArgs.cs" />
     <Compile Include="InfrastructureAbstractions\SyncManager.cs" />
     <Compile Include="InfrastructureAbstractions\SystemClock.cs" />
+    <Compile Include="StaticCluster.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
