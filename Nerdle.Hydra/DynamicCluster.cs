@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Nerdle.Hydra.Exceptions;
+using Nerdle.Hydra.Extensions;
 using Nerdle.Hydra.InfrastructureAbstractions;
 
 namespace Nerdle.Hydra
@@ -41,12 +41,34 @@ namespace Nerdle.Hydra
                 }
             }
 
-            throw exceptions.Count > 0 ? new ClusterFailureException("There are available components in the cluster, but the request was not successfully processed by any component.", exceptions.Count == 1 ? exceptions.First() : new AggregateException(exceptions)) : new ClusterFailureException("There are no currently available components in the cluster to process the request.");
+            throw exceptions.ToClusterFailureException();
         }
 
-        protected override Task<TClusterResult> ExecuteInternalAsync<TClusterResult>(Func<IFailable<TComponent>, Task<TClusterResult>> operation)
+        protected override async Task<TClusterResult> ExecuteInternalAsync<TClusterResult>(Func<IFailable<TComponent>, Task<TClusterResult>> operation)
         {
-            throw new NotImplementedException();
+            var exceptions = new List<Exception>();
+
+            // obtain an Enumerator instance in a thread safe manner as we may be trying to modify 
+            // the Components reference elsewhere 
+            using (var enumerator = _syncManager.ReadOnly(() => Components.GetEnumerator()))
+            {
+                while (enumerator.MoveNext())
+                {
+                    if (enumerator.Current.IsAvailable)
+                    {
+                        try
+                        {
+                            return await operation(enumerator.Current);
+                        }
+                        catch (Exception e)
+                        {
+                            exceptions.Add(e);
+                        }
+                    }
+                }
+            }
+
+            throw exceptions.ToClusterFailureException();
         }
 
         public void Add(IFailable<TComponent> newComponent, ComponentPriority priority)

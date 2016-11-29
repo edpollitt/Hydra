@@ -37,7 +37,7 @@ namespace Nerdle.Hydra.Simulator
 
             var elapsedTime = Time(() => simulation.Run());
 
-            log.Info($"Finished {config.Iterations} iterations in {elapsedTime.TotalSeconds} s.");
+            log.Info($"Finished {config.Iterations} iterations in {(int)elapsedTime.TotalSeconds} seconds.");
 
             Console.ReadKey();
         }
