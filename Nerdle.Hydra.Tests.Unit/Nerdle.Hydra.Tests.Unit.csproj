@@ -60,6 +60,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FailableComponentTests\When_executing_a_command_asynchronously.cs" />
+    <Compile Include="FailableComponentTests\When_executing_a_query_asynchronously.cs" />
     <Compile Include="TestHelpers\ISomeService.cs" />
     <Compile Include="StaticClusterTests\When_executing_a_command_asynchronously.cs" />
     <Compile Include="StaticClusterTests\When_executing_a_query_asynchronously.cs" />
