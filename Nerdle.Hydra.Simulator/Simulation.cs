@@ -16,6 +16,8 @@ namespace Nerdle.Hydra.Simulator
 
         static int _componentId;
 
+        public Type ClusterType => _cluster.GetType();
+
         Simulation(ICluster<ComponentStub> cluster, ISimulationConfiguration config, ILog log)
         {
             _cluster = cluster;
@@ -80,18 +82,41 @@ namespace Nerdle.Hydra.Simulator
 
         public void Run()
         {
+            if (_config.UseAsyncOperations)
+                RunAsync().Wait();
+
+            else
+                RunSync();
+        }
+
+        void RunSync()
+        {
             Parallel.For(0, _config.Iterations, new ParallelOptions { MaxDegreeOfParallelism = _config.Parallelism },
-                _ =>
-                {
-                    try
-                    {
-                        _cluster.Execute(component => component.DoSomething());
-                    }
-                    catch (Exception ex)
-                    {
-                        _log.Error(ex.GetType().Name);
-                    }
-                });
+                _ => {
+                        try
+                        {
+                            _cluster.Execute(component => component.DoSomething());
+                        }
+                        catch (Exception ex)
+                        {
+                            _log.Error(ex.GetType().Name);
+                        }
+                    });
+        }
+
+        async Task RunAsync()
+        {
+            await ParallelAsync.For(0, _config.Iterations, _config.Parallelism,
+                 async _ => {
+                         try
+                         {
+                             await _cluster.ExecuteAsync(component => component.DoSomethingAsync());
+                         }
+                         catch (Exception ex)
+                         {
+                             _log.Error(ex.GetType().Name);
+                         }
+                     });
         }
     }
 }

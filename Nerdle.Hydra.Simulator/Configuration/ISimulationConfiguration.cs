@@ -2,7 +2,8 @@ namespace Nerdle.Hydra.Simulator.Configuration
 {
     public interface ISimulationConfiguration
     {
-        bool DynamicCluster { get; }
+        bool UseDynamicCluster { get; }
+        bool UseAsyncOperations { get; }
         int ClusterSize { get; }
         int Iterations { get; }
         int Parallelism { get; }

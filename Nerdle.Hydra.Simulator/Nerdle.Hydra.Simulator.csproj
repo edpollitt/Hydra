@@ -57,6 +57,7 @@
     <Compile Include="Configuration\ISimulationConfiguration.cs" />
     <Compile Include="IRunnable.cs" />
     <Compile Include="LoggerFactory.cs" />
+    <Compile Include="ParallelAsync.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Simulation.cs" />

@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using log4net;
 
 namespace Nerdle.Hydra.Simulator
@@ -27,7 +28,17 @@ namespace Nerdle.Hydra.Simulator
         public void DoSomething()
         {
             Thread.Sleep(_operationTime);
+            MaybeError();
+        }
 
+        public async Task DoSomethingAsync()
+        {
+            await Task.Delay(_operationTime);
+            MaybeError();
+        }
+
+        void MaybeError()
+        {
             if (_random.NextDouble() <= _currentFailureRate)
             {
                 _log.Error(this);
