@@ -3,12 +3,13 @@ using System.IO;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Nerdle.Hydra.Exceptions;
+using Nerdle.Hydra.Tests.Unit.TestHelpers;
 using NUnit.Framework;
 
 namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests
 {
     [TestFixture]
-    class When_removing_a_component : _on_a_dynamic_cluster_of<IComparable>
+    class When_removing_a_component : _on_a_dynamic_cluster_of<ISomeService>
     {
         [Test]
         public void A_write_lock_is_obtained()

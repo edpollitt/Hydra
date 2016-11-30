@@ -1,6 +1,6 @@
 namespace Nerdle.Hydra
 {
-    public enum ComponentPriority
+    public enum ComponentPosition
     {
         NotSet,
         First,

@@ -43,7 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Cluster.cs" />
-    <Compile Include="ComponentPriority.cs" />
+    <Compile Include="ComponentPosition.cs" />
     <Compile Include="DynamicCluster.cs" />
     <Compile Include="Exceptions\ClusterException.cs" />
     <Compile Include="Exceptions\ClusterFailureException.cs" />

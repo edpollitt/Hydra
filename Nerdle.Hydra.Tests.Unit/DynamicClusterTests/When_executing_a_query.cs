@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using FluentAssertions;
 using Moq;
 using Nerdle.Hydra.Exceptions;
+using Nerdle.Hydra.Tests.Unit.TestHelpers;
 using NUnit.Framework;
 
 namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests
 {
     [TestFixture]
-    class When_executing_a_query : _on_a_dynamic_cluster_of<IEnumerator<int>>
+    class When_executing_a_query : _on_a_dynamic_cluster_of<ISomeService>
     {
-        readonly Func<IEnumerator<int>, int> _theQuery = enumerator => enumerator.Current;
+        readonly Func<ISomeService, object> _theQuery = service => service.SomeQuery<object>();
 
         [Test]
         public void A_read_lock_is_obtained()

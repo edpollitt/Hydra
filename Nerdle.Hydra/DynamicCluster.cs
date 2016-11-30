@@ -71,22 +71,22 @@ namespace Nerdle.Hydra
             throw exceptions.ToClusterFailureException();
         }
 
-        public void Add(IFailable<TComponent> newComponent, ComponentPriority priority)
+        public void Add(IFailable<TComponent> newComponent, ComponentPosition position)
         {
             Register(newComponent);
 
             EditComponents(list =>
             {
-                switch (priority)
+                switch (position)
                 {
-                    case ComponentPriority.First:
+                    case ComponentPosition.First:
                         list.Insert(0, newComponent);
                         break;
-                    case ComponentPriority.Last:
+                    case ComponentPosition.Last:
                         list.Add(newComponent);
                         break;
                     default:
-                        throw new ClusterModificationException($"DynamicCluster 'Add' behaviour is undefined for priority '{priority}'. Component {newComponent.ComponentId} has not been added to cluster.");
+                        throw new ClusterModificationException($"DynamicCluster 'Add' behaviour is undefined for priority '{position}'. Component {newComponent.ComponentId} has not been added to cluster.");
                 }
             });
         }
