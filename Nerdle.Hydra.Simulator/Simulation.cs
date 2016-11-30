@@ -67,7 +67,7 @@ namespace Nerdle.Hydra.Simulator
         {
             var id = Interlocked.Increment(ref _componentId).ToString("#0000");
             var componentLog = LoggerFactory.CreateLogger(id);
-            var stateManager = new RollingWindowAveragingStateManager(config.RollingWindow.WindowLength, config.RollingWindow.FailureTriggerPercentage, config.RollingWindow.MinimumSampleSize, config.RollingWindow.FailFor);
+            var stateManager = new RollingWindowStateManager(config.RollingWindow.WindowLength, config.RollingWindow.FailureTriggerPercentage, config.RollingWindow.MinimumSampleSize, config.RollingWindow.FailFor);
             var component = new ComponentStub(id, config.Component.BaseFailureRate, config.Component.OperationDelay, componentLog);
             var failableComponent = new Failable<ComponentStub>(id, component, stateManager);
 

@@ -4,10 +4,10 @@ using Moq;
 using Nerdle.Hydra.StateManagement;
 using NUnit.Framework;
 
-namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateManagerTests
+namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowStateManagerTests
 {
     [TestFixture]
-    class When_registering_a_failed_operation : _to_a_rolling_window_averaging_state_manager
+    class When_registering_a_failed_operation : _to_a_rolling_window_state_manager
     {
         [TestCase(State.Unknown)]
         [TestCase(State.Failed)]

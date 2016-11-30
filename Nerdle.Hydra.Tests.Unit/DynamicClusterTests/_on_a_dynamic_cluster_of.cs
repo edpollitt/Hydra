@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using Moq;
 using Nerdle.Hydra.InfrastructureAbstractions;
-using Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateManagerTests.Helpers;
+using Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowStateManagerTests.Helpers;
 using NUnit.Framework;
 
 namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests

@@ -5,10 +5,10 @@ using FluentAssertions;
 using Moq;
 using Nerdle.Hydra.InfrastructureAbstractions;
 using Nerdle.Hydra.StateManagement;
-using Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateManagerTests.Helpers;
+using Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowStateManagerTests.Helpers;
 using NUnit.Framework;
 
-namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateManagerTests
+namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowStateManagerTests
 {
     [TestFixture]
     class When_reading_the_current_state
@@ -96,9 +96,9 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
             changeArgs.CurrentState.Should().Be(State.Recovering);
         }
 
-        RollingWindowAveragingStateManager RollingWindowAveragingStateManagerWithState(State state)
+        RollingWindowStateManager RollingWindowAveragingStateManagerWithState(State state)
         {
-            return new RollingWindowAveragingStateManager(
+            return new RollingWindowStateManager(
                 Mock.Of<IRollingWindow>(), 
                 Mock.Of<IRollingWindow>(),
                 _syncManagerProxy,

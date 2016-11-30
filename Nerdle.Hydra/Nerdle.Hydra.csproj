@@ -64,7 +64,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="InfrastructureAbstractions\ISyncManager.cs" />
     <Compile Include="StateManagement\RollingWindow.cs" />
-    <Compile Include="StateManagement\RollingWindowAveragingStateManager.cs" />
+    <Compile Include="StateManagement\RollingWindowStateManager.cs" />
     <Compile Include="StateManagement\State.cs" />
     <Compile Include="StateManagement\StateChangedArgs.cs" />
     <Compile Include="InfrastructureAbstractions\SyncManager.cs" />

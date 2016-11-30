@@ -4,7 +4,7 @@ using Nerdle.Hydra.InfrastructureAbstractions;
 
 namespace Nerdle.Hydra.StateManagement
 {
-    public class RollingWindowAveragingStateManager : IStateManager
+    public class RollingWindowStateManager : IStateManager
     {
         readonly IRollingWindow _successWindow;
         readonly IRollingWindow _failureWindow;
@@ -18,7 +18,7 @@ namespace Nerdle.Hydra.StateManagement
 
         public event EventHandler<StateChangedArgs> StateChanged;
 
-        public RollingWindowAveragingStateManager(TimeSpan windowLength, double failureTriggerPercentage, int minimumSampleSize, TimeSpan failFor, TimeSpan? synchLockTimeout = null) 
+        public RollingWindowStateManager(TimeSpan windowLength, double failureTriggerPercentage, int minimumSampleSize, TimeSpan failFor, TimeSpan? synchLockTimeout = null) 
             : this(new RollingWindow(windowLength), 
                    new RollingWindow(windowLength), 
                    new SyncManager(new ReaderWriterLockSlim(), synchLockTimeout), 
@@ -27,7 +27,7 @@ namespace Nerdle.Hydra.StateManagement
                    new FailurePercentageWithMinimumSampleSizeCondition(failureTriggerPercentage, minimumSampleSize))
         {}
 
-        internal RollingWindowAveragingStateManager(
+        internal RollingWindowStateManager(
             IRollingWindow successWindow,
             IRollingWindow failureWindow,
             ISyncManager syncManager,

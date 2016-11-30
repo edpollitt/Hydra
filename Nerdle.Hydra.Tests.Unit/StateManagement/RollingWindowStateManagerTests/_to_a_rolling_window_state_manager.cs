@@ -3,12 +3,12 @@ using System.Threading;
 using Moq;
 using Nerdle.Hydra.InfrastructureAbstractions;
 using Nerdle.Hydra.StateManagement;
-using Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateManagerTests.Helpers;
+using Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowStateManagerTests.Helpers;
 using NUnit.Framework;
 
-namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateManagerTests
+namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowStateManagerTests
 {
-    class _to_a_rolling_window_averaging_state_manager
+    class _to_a_rolling_window_state_manager
     {
         protected CountingSyncManagerProxy SyncManagerProxy;
         protected Mock<IClock> Clock;
@@ -29,9 +29,9 @@ namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowAveragingStateMan
             FailureCondition = new Mock<ICondition<int, int>>();
         }
 
-        protected RollingWindowAveragingStateManager RollingWindowAveragingStateManagerWithState(State state)
+        protected RollingWindowStateManager RollingWindowAveragingStateManagerWithState(State state)
         {
-            return new RollingWindowAveragingStateManager(
+            return new RollingWindowStateManager(
                 SuccessWindow.Object,
                 FailureWindow.Object,
                 SyncManagerProxy,
