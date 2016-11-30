@@ -12,6 +12,11 @@ namespace Nerdle.Hydra
             : base(components)
         {}
 
+        //static IEnumerable<TComponent> IndexOver(IList<TComponent> components)
+        //{
+        //    Enumerable.Range(0, components.Count - 1)
+        //} 
+
         protected override TClusterResult ExecuteInternal<TClusterResult>(Func<IFailable<TComponent>, TClusterResult> operation)
         {
             var exceptions = new List<Exception>();

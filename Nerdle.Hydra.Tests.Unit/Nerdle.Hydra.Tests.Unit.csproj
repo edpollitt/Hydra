@@ -62,8 +62,10 @@
   <ItemGroup>
     <Compile Include="DynamicClusterTests\When_executing_a_command_asynchronously.cs" />
     <Compile Include="DynamicClusterTests\When_executing_a_query_asynchronously.cs" />
+    <Compile Include="DynamicClusterTests\When_instantiating_a_dynamic_cluster.cs" />
     <Compile Include="FailableComponentTests\When_executing_a_command_asynchronously.cs" />
     <Compile Include="FailableComponentTests\When_executing_a_query_asynchronously.cs" />
+    <Compile Include="StaticClusterTests\When_instantiating_a_static_cluster.cs" />
     <Compile Include="TestHelpers\ISomeService.cs" />
     <Compile Include="StaticClusterTests\When_executing_a_command_asynchronously.cs" />
     <Compile Include="StaticClusterTests\When_executing_a_query_asynchronously.cs" />
@@ -87,7 +89,7 @@
     <Compile Include="FailableComponentTests\_on_a_failable_component.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StateManagement\FailureRatioWithMinimumSampleSizeConditionTests\When_evaluating_the_condition.cs" />
-    <Compile Include="StateManagement\RollingWindowStateManagerTests\Helpers\CountingSyncManagerProxy.cs" />
+    <Compile Include="TestHelpers\CountingSyncManagerProxy.cs" />
     <Compile Include="StateManagement\RollingWindowStateManagerTests\When_reading_current_state.cs" />
     <Compile Include="StateManagement\RollingWindowStateManagerTests\When_registering_a_failed_operation.cs" />
     <Compile Include="StateManagement\RollingWindowStateManagerTests\When_registering_a_successful_operation.cs" />

@@ -14,6 +14,9 @@ namespace Nerdle.Hydra
         public DynamicCluster(IEnumerable<IFailable<TComponent>> components, ISyncManager syncManager)
             : base(components)
         {
+            if (syncManager == null)
+                throw new ArgumentNullException(nameof(syncManager));
+
             _syncManager = syncManager;
         }
 

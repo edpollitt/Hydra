@@ -14,6 +14,9 @@ namespace Nerdle.Hydra
 
         protected Cluster(IEnumerable<IFailable<TComponent>> components)
         {
+            if (components == null)
+                throw new ArgumentNullException(nameof(components));
+            
             Components = components.ToList();
 
             foreach (var component in Components)

@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using Nerdle.Hydra.InfrastructureAbstractions;
 
-namespace Nerdle.Hydra.Tests.Unit.StateManagement.RollingWindowStateManagerTests.Helpers
+namespace Nerdle.Hydra.Tests.Unit.TestHelpers
 {
     class CountingSyncManagerProxy : ISyncManager
     {
