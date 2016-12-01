@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Nerdle.Hydra.Exceptions;
 using Nerdle.Hydra.Extensions;
@@ -11,8 +12,8 @@ namespace Nerdle.Hydra
     {
         readonly ISyncManager _syncManager;
 
-        public DynamicCluster(IEnumerable<IFailable<TComponent>> components, ISyncManager syncManager)
-            : base(components)
+        public DynamicCluster(IEnumerable<IFailable<TComponent>> components, ISyncManager syncManager, ITraversal clusterTraversal = null)
+            : base(components, clusterTraversal)
         {
             if (syncManager == null)
                 throw new ArgumentNullException(nameof(syncManager));
@@ -24,23 +25,20 @@ namespace Nerdle.Hydra
         {
             var exceptions = new List<Exception>();
 
-            // obtain an Enumerator instance in a thread safe manner as we may be trying to modify 
+            // clone the components list in a thread safe manner as we may be trying to modify 
             // the Components reference elsewhere 
-            using (var enumerator = _syncManager.ReadOnly(() => Components.GetEnumerator()))
+            var listCopy = _syncManager.ReadOnly(() => Components.ToList());
+
+            foreach (var component in ClusterTraversal.Traverse(listCopy))
             {
-                while (enumerator.MoveNext())
+                try
                 {
-                    if (enumerator.Current.IsAvailable)
-                    {
-                        try
-                        {
-                            return operation(enumerator.Current);
-                        }
-                        catch (Exception e)
-                        {
-                            exceptions.Add(e);
-                        }
-                    }
+                    if (component.IsAvailable)
+                        return operation(component);
+                }
+                catch (Exception e)
+                {
+                    exceptions.Add(e);
                 }
             }
 
@@ -51,23 +49,20 @@ namespace Nerdle.Hydra
         {
             var exceptions = new List<Exception>();
 
-            // obtain an Enumerator instance in a thread safe manner as we may be trying to modify 
+            // clone the components list in a thread safe manner as we may be trying to modify 
             // the Components reference elsewhere 
-            using (var enumerator = _syncManager.ReadOnly(() => Components.GetEnumerator()))
+            var listCopy = _syncManager.ReadOnly(() => Components.ToList());
+
+            foreach (var component in ClusterTraversal.Traverse(listCopy))
             {
-                while (enumerator.MoveNext())
+                try
                 {
-                    if (enumerator.Current.IsAvailable)
-                    {
-                        try
-                        {
-                            return await operation(enumerator.Current);
-                        }
-                        catch (Exception e)
-                        {
-                            exceptions.Add(e);
-                        }
-                    }
+                    if (component.IsAvailable)
+                        return await operation(component);
+                }
+                catch (Exception e)
+                {
+                    exceptions.Add(e);
                 }
             }
 

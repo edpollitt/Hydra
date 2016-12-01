@@ -17,6 +17,8 @@ namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests
 
         protected IDictionary<string, Mock<IFailable<T>>> Components;
 
+        protected Mock<ITraversal> Traversal;
+
         protected ReaderWriterLockSlim RwLock;
         protected CountingSyncManagerProxy SyncManagerProxy;
         protected DynamicCluster<T> Sut;
@@ -36,7 +38,12 @@ namespace Nerdle.Hydra.Tests.Unit.DynamicClusterTests
                 })
                 .ToDictionary(component => component.Object.ComponentId, component => component);
 
-            Sut = new DynamicCluster<T>(Components.Values.Select(mock => mock.Object), SyncManagerProxy);
+            Traversal = new Mock<ITraversal>();
+
+            Traversal.Setup(t => t.Traverse(It.IsAny<IList<IFailable<T>>>()))
+                .Returns<IList<IFailable<T>>>(components => components);
+
+            Sut = new DynamicCluster<T>(Components.Values.Select(mock => mock.Object), SyncManagerProxy, Traversal.Object);
         }
     }
 }

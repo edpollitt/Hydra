@@ -7,17 +7,22 @@ namespace Nerdle.Hydra
 {
     public abstract class Cluster<TComponent> : ICluster<TComponent>
     {
+        protected readonly ITraversal ClusterTraversal;
         protected IList<IFailable<TComponent>> Components;
 
         public event EventHandler<Exception> ComponentFailed;
         public event EventHandler ComponentRecovered;
-
-        protected Cluster(IEnumerable<IFailable<TComponent>> components)
+        
+        protected Cluster(IEnumerable<IFailable<TComponent>> components, ITraversal clusterTraversal = null)
         {
+            clusterTraversal = clusterTraversal ?? Traversal.Default;
+
             if (components == null)
                 throw new ArgumentNullException(nameof(components));
             
             Components = components.ToList();
+
+            ClusterTraversal = clusterTraversal;
 
             foreach (var component in Components)
                 Register(component);

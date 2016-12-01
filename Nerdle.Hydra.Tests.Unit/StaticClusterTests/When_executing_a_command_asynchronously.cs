@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
@@ -28,6 +30,28 @@ namespace Nerdle.Hydra.Tests.Unit.StaticClusterTests
 
             foreach (var component in Components)
                 component.Value.Verify(c => c.ExecuteAsync(_theCommand), component.Key == expectedHandler ? Times.Once() : Times.Never());
+
+            result.HandledByComponentId.Should().Be(expectedHandler);
+        }
+
+        [TestCase(true, true, true, Tertiary)]
+        [TestCase(true, false, false, Primary)]
+        [TestCase(false, true, true, Tertiary)]
+        [TestCase(false, true, false, Secondary)]
+        [TestCase(false, false, true, Tertiary)]
+        public void Default_component_order_can_be_overridden(bool primaryAvailability, bool secondaryAvailability, bool tertiaryAvailability, string expectedHandler)
+        {
+            Traversal.Setup(t => t.Traverse(It.IsAny<IList<IFailable<ISomeService>>>()))
+                .Returns<IList<IFailable<ISomeService>>>(components => components.Reverse());
+
+            Components[Primary].Setup(component => component.IsAvailable).Returns(primaryAvailability);
+            Components[Secondary].Setup(component => component.IsAvailable).Returns(secondaryAvailability);
+            Components[Tertiary].Setup(component => component.IsAvailable).Returns(tertiaryAvailability);
+
+            var result = Sut.Execute(_theCommand);
+
+            foreach (var component in Components)
+                component.Value.Verify(c => c.Execute(_theCommand), component.Key == expectedHandler ? Times.Once() : Times.Never());
 
             result.HandledByComponentId.Should().Be(expectedHandler);
         }

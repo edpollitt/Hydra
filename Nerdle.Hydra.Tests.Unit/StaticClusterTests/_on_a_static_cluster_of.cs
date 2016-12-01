@@ -13,6 +13,8 @@ namespace Nerdle.Hydra.Tests.Unit.StaticClusterTests
 
         protected IDictionary<string, Mock<IFailable<T>>> Components;
 
+        protected Mock<ITraversal> Traversal;
+
         protected Cluster<T> Sut;
 
         [SetUp]
@@ -27,7 +29,12 @@ namespace Nerdle.Hydra.Tests.Unit.StaticClusterTests
                 })
                 .ToDictionary(component => component.Object.ComponentId, component => component);
 
-            Sut = new StaticCluster<T>(Components.Values.Select(mock => mock.Object));
+            Traversal = new Mock<ITraversal>();
+
+            Traversal.Setup(t => t.Traverse(It.IsAny<IList<IFailable<T>>>()))
+                .Returns<IList<IFailable<T>>>(components => components);
+
+            Sut = new StaticCluster<T>(Components.Values.Select(mock => mock.Object), Traversal.Object);
         }
     }
 }

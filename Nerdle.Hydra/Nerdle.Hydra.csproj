@@ -57,6 +57,8 @@
     <Compile Include="ICluster.cs" />
     <Compile Include="IFailable.cs" />
     <Compile Include="InfrastructureAbstractions\LockTimeoutBehaviour.cs" />
+    <Compile Include="ITraversal.cs" />
+    <Compile Include="RandomisedTraversal.cs" />
     <Compile Include="StateManagement\FailurePercentageWithMinimumSampleSizeCondition.cs" />
     <Compile Include="StateManagement\ICondition.cs" />
     <Compile Include="StateManagement\IRollingWindow.cs" />
@@ -70,6 +72,7 @@
     <Compile Include="InfrastructureAbstractions\SyncManager.cs" />
     <Compile Include="InfrastructureAbstractions\SystemClock.cs" />
     <Compile Include="StaticCluster.cs" />
+    <Compile Include="Traversal.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

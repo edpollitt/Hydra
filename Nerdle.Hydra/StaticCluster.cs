@@ -1,32 +1,27 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Nerdle.Hydra.Extensions;
 
 namespace Nerdle.Hydra
 {
     public class StaticCluster<TComponent> : Cluster<TComponent>
-    {
-        public StaticCluster(IEnumerable<IFailable<TComponent>> components)
-            : base(components)
-        {}
-
-        //static IEnumerable<TComponent> IndexOver(IList<TComponent> components)
-        //{
-        //    Enumerable.Range(0, components.Count - 1)
-        //} 
+    {   
+        public StaticCluster(IEnumerable<IFailable<TComponent>> components, ITraversal clusterTraversal = null)
+            : base(components, clusterTraversal)
+        { }
 
         protected override TClusterResult ExecuteInternal<TClusterResult>(Func<IFailable<TComponent>, TClusterResult> operation)
         {
             var exceptions = new List<Exception>();
 
             // avoid eagerly enumerating components, as evaluating availability may be expensive (depending on availability heuristic in use)
-            foreach (var component in Components.Where(c => c.IsAvailable))
+            foreach (var component in ClusterTraversal.Traverse(Components))
             {
                 try
                 {
-                    return operation(component);
+                    if (component.IsAvailable)
+                        return operation(component);
                 }
                 catch (Exception e)
                 {
@@ -42,11 +37,12 @@ namespace Nerdle.Hydra
             var exceptions = new List<Exception>();
 
             // avoid eagerly enumerating components, as evaluating availability may be expensive (depending on availability heuristic in use)
-            foreach (var component in Components.Where(c => c.IsAvailable))
+            foreach (var component in ClusterTraversal.Traverse(Components))
             {
                 try
                 {
-                    return await operation(component);
+                    if (component.IsAvailable)
+                        return await operation(component);
                 }
                 catch (Exception e)
                 {
